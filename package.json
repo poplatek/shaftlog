@@ -1,0 +1,11 @@
+{
+  "name": "lognimbus",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:nakedible/lognimbus.git"  
+  },
+  "dependencies": {
+    "request": "*"
+  }
+}
