@@ -1,8 +1,10 @@
-"use strict"
+"use strict";
 
-var fs = require('fs')
-var http = require('http')
-var url = require('url')
+var fs = require('fs');
+var http = require('http');
+var url = require('url');
+
+//var request = require('request');
 
 function get_local_size(path, cb) {
     fs.stat(path, function (err, val) {

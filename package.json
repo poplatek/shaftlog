@@ -6,6 +6,8 @@
     "url": "git@github.com:nakedible/lognimbus.git"  
   },
   "dependencies": {
-    "request": "*"
+    "request": "*",
+    "streamline": "*",
+    "glob": "*"
   }
 }
