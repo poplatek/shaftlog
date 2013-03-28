@@ -1,0 +1,10 @@
+{
+    "datadir": "/home/naked/github/lognimbus/syncdir",
+    
+    "logpaths": [{"name": "jpgs",
+                  "pattern": "/home/naked/*.jpg"},
+                 {"name": "pngs",
+                  "pattern": "/home/naked/*.png"}],
+    
+    "destinations": [{"url": "http://localhost/"}]
+}

@@ -52,5 +52,6 @@ function test() {
     sc.trigger_scan();
 }
 
-test();
+//test();
 
+exports.Scanner = Scanner;
