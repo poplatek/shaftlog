@@ -6,11 +6,11 @@ require('streamline').register({
     verbose: false
 });
 
-var scanner = require('./scanner');
+var syncer = require('./syncer');
 
 var conf = require('./config.json');
 
-var sc = new scanner.Scanner(conf);
+var sc = new syncer.Scanner(conf);
 sc.scanloop(function (err, val) {
     console.log(err, val);
 });
