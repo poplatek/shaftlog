@@ -5,53 +5,63 @@ var path = require('path');
 
 var glob = require('glob');
 
-function Scanner(destdir, basename, pattern) {
-    this.destdir = destdir;
-    this.basename = basename;
-    this.pattern = pattern;
-    this.linked = {};
-}
-
-Scanner.prototype.trigger_scan = function () {
-    var self = this;
-    if (this.g) return;
-    this.g = new glob.Glob(this.pattern, {nonull: false});
-    this.g.on('error', function (e) { self.g = null; });
-    this.g.on('end', function () { self.g = null; });
-    this.g.on('abort', function () { self.g = null; });
-    this.g.on('match', function (fn) {
-        self.handle_file(fn, function (err, val) {
-            if (err) console.log('ERROR: ' + err);
-            else console.log('VALUE: ' + val);
-        });
-    });
-}
-
-Scanner.prototype.handle_file = function (path, _) {
-    var stats = fs.stat(path, _);
-    if (!stats.isFile()) {
-        return;
+function Scanner(config) {
+    this.config = config;
+    this.exit = false;
+    this.inodes = {};
+    var files = glob.sync(this.config.datadir + '/*', {nonull: false});
+    for (var i = 0; i < files.length; i++) {
+        var stats = fs.statSync(files[i]);
+        if (!stats.isFile()) continue;
+        this.inodes[stats.ino] = files[i];
     }
-    var tmppath = this.destdir + '/.tmp.' + stats.ino;
+}
+
+Scanner.prototype.scanloop = function (_) {
+    do {
+        console.log('STARTING SCAN');
+        try {
+            this.do_scans(_);
+        } catch (e) {
+            console.log('SCAN ERROR: ' + e);
+        }
+        setTimeout(_, this.config.scan_interval);
+    } while (!this.exit)
+}
+
+Scanner.prototype.do_scans = function (_) {
+    var statcache = {};
+    for (var i = 0; i < this.config.logpaths.length; i++) {
+        var logpath = this.config.logpaths[i];
+        var files = glob(logpath.pattern, {nonull: false, statCache: statcache}, _);
+        for (var j = 0; j < files.length; j++) {
+            try {
+                this.handle_file(files[j], logpath, _);
+            } catch (e) {
+                console.log('FILE ERROR: ' + e);
+            }
+        }
+    }
+}
+
+Scanner.prototype.handle_file = function (path, logpath, _) {
+    var stats = fs.stat(path, _);
+    if (!stats.isFile() || typeof this.inodes[stats.ino] !== 'undefined') {
+        return false;;
+    }
+    var tmppath = this.config.datadir + '/.tmp.' + stats.ino;
     fs.link(path, tmppath, _);
     if (fs.stat(tmppath, _).ino === stats.ino) {
-        var realpath = this.destdir + '/' + this.basename + '.' + stats.mtime.getTime();
+        var realpath = this.config.datadir + '/' + logpath.name + '.' + stats.mtime.getTime();
         fs.link(tmppath, realpath, _);
-        this.linked[stats.ino] = true;
-        console.log('adding linked: ' + stats.ino);
+        this.inodes[stats.ino] = realpath;
         fs.unlink(tmppath, _);
-        console.log(realpath);
-        // notify
+        console.log('DETECTED NEW FILE: ' + path + ' -> ' + realpath);
+        return true;
     } else {
         fs.unlink(tmppath, _);
+        return false;
     }
 }
-
-function test() {
-    var sc = new Scanner('/tmp', 'jpg', '/home/naked/*.jpg');
-    sc.trigger_scan();
-}
-
-//test();
 
 exports.Scanner = Scanner;

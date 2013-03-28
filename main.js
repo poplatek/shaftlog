@@ -10,4 +10,8 @@ var scanner = require('./scanner');
 
 var conf = require('./config.json');
 
-console.log(conf);
+var sc = new scanner.Scanner(conf);
+sc.scanloop(function (err, val) {
+    console.log(err, val);
+});
+setTimeout(function () { sc.exit = true; }, 40000);

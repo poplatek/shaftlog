@@ -1,6 +1,7 @@
 {
     "datadir": "/home/naked/github/lognimbus/syncdir",
-    
+
+    "scan_interval": 30000,
     "logpaths": [{"name": "jpgs",
                   "pattern": "/home/naked/*.jpg"},
                  {"name": "pngs",
