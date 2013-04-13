@@ -10,6 +10,7 @@
     "streamline": "*",
     "glob": "*",
     "backoff": "*",
-    "forever-agent": "*"
+    "forever-agent": "*",
+    "tea-error": "*"
   }
 }
