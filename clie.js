@@ -4,7 +4,10 @@ var fs = require('fs');
 var http = require('http');
 var url = require('url');
 
+var ForeverAgent = require('forever-agent');
 //var request = require('request');
+
+var agent = new ForeverAgent();
 
 function get_local_size(path, cb) {
     fs.stat(path, function (err, val) {
@@ -17,6 +20,7 @@ function get_remote_size(remote_url, cb) {
     var done = false;
     var options = url.parse(remote_url);
     options.method = 'HEAD';
+    options.agent = agent;
     var req = http.request(options, function (res) {
         res.on('end', function () {
             if (done) return;
@@ -67,6 +71,7 @@ function send_piece(remote_url, path, offset, len, size, cb) {
         'Content-Range': 'bytes ' + offset + '-' + (offset+len-1) + '/' + size,
         'Content-Length': len
     };
+    options.agent = agent;
     var req = http.request(options, function (res) {
         res.on('end', function () {
             if (done) return;
