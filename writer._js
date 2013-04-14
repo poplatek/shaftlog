@@ -10,7 +10,7 @@ var terr = require('tea-error');
 
 var HttpError = terr('HttpError');
 
-var DEBUG = true;
+var DEBUG = false;
 
 function make_parent_directories(filename, _) {
     var dir = path.dirname(filename);
@@ -71,7 +71,9 @@ function SyncWriter(destdir) {
 }
 
 SyncWriter.prototype.validate_path = function (uri) {
-    console.log('VALIDATE: ' + uri);
+    var m = uri.match(/^(\/([a-zA-Z0-9_-][a-zA-Z0-9._-]*)){1,2}$/);
+    if (!m) return false;
+    return true;
 }
 
 SyncWriter.prototype.handle_raw_request = function (request, response) {
@@ -110,7 +112,7 @@ SyncWriter.prototype.handle_request = function (request, response, _) {
 
 SyncWriter.prototype.handle_head = function (request, response, _) {
     var uri = url.parse(request.url).pathname
-    this.validate_path(uri);
+    if (!this.validate_path(uri)) throw new HttpError('request path not accepted', {http_status: 400});
     var filename = path.join(this.destdir, uri);
     var local_size = get_file_size(filename, _);
     if (local_size !== null) {
@@ -122,7 +124,7 @@ SyncWriter.prototype.handle_head = function (request, response, _) {
 
 SyncWriter.prototype.handle_put = function (request, response, _) {
     var uri = url.parse(request.url).pathname
-    this.validate_path(uri);
+    if (!this.validate_path(uri)) throw new HttpError('request path not accepted', {http_status: 400});
     var filename = path.join(this.destdir, uri);
     var cr = request.headers['content-range'];
     if (!cr) throw new HttpError('no content-range header', {http_status: 400});
