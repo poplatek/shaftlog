@@ -1,7 +1,7 @@
 "use strict";
 
-var syncer = require('./syncer');
+var client = require('./client');
 
 var config = require('./config.json');
-var sh = new syncer.SyncHandler(config);
+var sh = new client.SyncHandler(config);
 sh.start();
