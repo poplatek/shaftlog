@@ -2,14 +2,14 @@
 
 var fs = require('fs');
 var path = require('path');
+var http = require('http');
 var url = require('url');
 var EE = require('events').EventEmitter;
 var util = require('util');
 
 var glob = require('glob');
 var backoff = require('backoff');
-
-var clie = require('./clie');
+var ForeverAgent = require('forever-agent');
 
 function SyncHandler(config) {
     this.config = config;
@@ -142,11 +142,12 @@ function HttpSyncTarget(base_url, source_dir) {
     this.base_url = base_url; // XXX: base url must end in slash
     this.source_dir = source_dir;
     this.syncers = {};
+    this.agent = new ForeverAgent();
 }
 
 HttpSyncTarget.prototype.add_file = function (name) {
     if (this.syncers[name]) return;
-    var sync = new FileSyncer(url.resolve(this.base_url, name), path.join(this.source_dir, name));
+    var sync = new HttpFileSyncer(url.resolve(this.base_url, name), path.join(this.source_dir, name), this.agent);
     sync.on('insync', function () { console.log('IN SYNC!'); });
     sync.on('sending', function () { console.log('SENDING!'); });
     sync.on('piece', function (start, end) { console.log('  PIECE: ' + start + '-' + end); });
@@ -167,10 +168,11 @@ HttpSyncTarget.prototype.trigger_file = function (name) {
 
 var BLOCKSIZE = 1024*1024;
 
-function FileSyncer(target_url, source_path) {
+function HttpFileSyncer(target_url, source_path, agent) {
     EE.call(this);
     this.target_url = target_url;
     this.source_path = source_path;
+    this.agent = agent;
     this.local_size = null;
     this.remote_size = null;
     this.state = 'INIT';
@@ -183,9 +185,9 @@ function FileSyncer(target_url, source_path) {
     });
     this.call = null;
 }
-util.inherits(FileSyncer, EE);
+util.inherits(HttpFileSyncer, EE);
 
-FileSyncer.prototype.trigger_sync = function () {
+HttpFileSyncer.prototype.trigger_sync = function () {
     if (this.state === 'INSYNC' || this.state === 'INIT') {
         this.start_send_file();
     } else {
@@ -193,7 +195,7 @@ FileSyncer.prototype.trigger_sync = function () {
     }
 }
 
-FileSyncer.prototype.start_send_file = function () {
+HttpFileSyncer.prototype.start_send_file = function () {
     var self = this;
     this.call = backoff.call(function (cb) {
         self.send_file(cb);
@@ -222,20 +224,120 @@ FileSyncer.prototype.start_send_file = function () {
     this.call.start();
 }
 
-FileSyncer.prototype.send_file = function (_) {
+HttpFileSyncer.prototype.send_file = function (_) {
     if (this.remote_size == null) {
-        this.remote_size = clie.get_remote_size(this.target_url, _);
+        this.remote_size = get_remote_size(this.agent, this.target_url, _);
     }
-    this.local_size = clie.get_local_size(this.source_path, _);
+    this.local_size = get_local_size(this.source_path, _);
     while (this.local_size > this.remote_size) {
         var len = Math.min(BLOCKSIZE, this.local_size-this.remote_size)
         this.emit('piece', this.remote_size, this.remote_size + len);
-        this.remote_size = clie.send_piece(this.target_url, this.source_path, this.remote_size, len, this.local_size, _);
-        this.local_size = clie.get_local_size(this.source_path, _);
+        this.remote_size = send_piece(this.agent, this.target_url, this.source_path, this.remote_size, len, this.local_size, _);
+        this.local_size = get_local_size(this.source_path, _);
     }
+}
+
+function get_local_size(path, cb) {
+    fs.stat(path, function (err, val) {
+        if (err) cb(err);
+        else cb(null, val.size);
+    });
+}
+
+function get_remote_size(agent, remote_url, cb) {
+    var done = false;
+    var options = url.parse(remote_url);
+    options.method = 'HEAD';
+    options.agent = agent;
+    var req = http.request(options, function (res) {
+        res.on('end', function () {
+            if (done) return;
+            done = true;
+            switch (res.statusCode) {
+            case 200:
+                var cl = parseInt(res.headers['content-length'], 10);
+                if (isNaN(cl)) {
+                    cb(new Error('Content-Length header missing or invalid in HEAD response'));
+                } else {
+                    cb(null, cl);
+                }
+                break;
+            case 404:
+                cb(null, 0);
+                break;
+            default:
+                cb(new Error('HEAD response with status code: ' + res.statusCode));
+                break;
+            }
+        });
+        res.on('close', function () {
+            if (done) return;
+            done = true;
+            cb(new Error('response was cut off'));
+        });
+        res.resume();
+    });
+    req.setTimeout(30000, function () {
+        if (done) return;
+        done = true;
+        cb(new Error('timeout'));
+        req.abort();
+    });
+    req.on('error', function (err) {
+        if (done) return;
+        done = true;
+        cb(err);
+    });
+    req.end();
+}
+
+function send_piece(agent, remote_url, path, offset, len, size, cb) {
+    var done = false;
+    var options = url.parse(remote_url);
+    options.method = 'PUT';
+    options.headers = {
+        'Content-Range': 'bytes ' + offset + '-' + (offset+len-1) + '/' + size,
+        'Content-Length': len
+    };
+    options.agent = agent;
+    var req = http.request(options, function (res) {
+        res.on('data', function (data) {
+            console.log(data.toString('utf-8'));
+        });
+        res.on('end', function () {
+            if (done) return; done = true;
+            switch (res.statusCode) {
+            case 200: case 201: case 204:
+                return cb(null, offset+len); // just assume it was all saved correctly
+            default:
+                return cb(new Error('PUT response with status code: ' + res.statusCode));
+            }
+        });
+        res.on('close', function () {
+            if (done) return; done = true;
+            return cb(new Error('response was cut off'));
+        });
+        res.resume();
+    });
+    req.setTimeout(30000, function () {
+        if (done) return; done = true;
+        req.abort();
+        return cb(new Error('timeout'));
+    });
+    req.on('error', function (err) {
+        if (done) return; done = true;
+        return cb(err);
+    });
+    var read = fs.createReadStream(path, {start: offset, end: offset+len-1});
+    read.on('error', function (err) {
+        if (done) return; done = true;
+        req.abort();
+        return cb(err);
+    });
+    read.pipe(req);
 }
 
 exports.SyncHandler = SyncHandler;
 exports.Scanner = Scanner;
 exports.HttpSyncTarget = HttpSyncTarget;
-exports.FileSyncer = FileSyncer;
+exports.HttpFileSyncer = HttpFileSyncer;
