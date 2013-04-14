@@ -139,7 +139,7 @@ SyncWriter.prototype.handle_put = function (request, response, _) {
         var local_size = get_file_size(filename, _);
         if (local_size == null) {
             local_size = 0;
-            make_parent_directories(filepath, _);
+            make_parent_directories(filename, _);
         }
         if (local_size > size) throw new HttpError('file is larger than specified in instance length', {http_status: 416});
         if (start !== local_size) throw new HttpError('only strict append is supported on file', {http_status: 416});

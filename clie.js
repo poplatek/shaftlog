@@ -73,6 +73,9 @@ function send_piece(remote_url, path, offset, len, size, cb) {
     };
     options.agent = agent;
     var req = http.request(options, function (res) {
+        res.on('data', function (data) {
+            console.log(data.toString('utf-8'));
+        });
         res.on('end', function () {
             if (done) return; done = true;
             switch (res.statusCode) {
