@@ -229,6 +229,10 @@ HttpFileSyncer.prototype.send_file = function (_) {
         this.remote_size = get_remote_size(this.agent, this.target_url, _);
     }
     this.local_size = get_local_size(this.source_path, _);
+    if (this.local_size < this.remote_size) {
+        console.log('FILE SHRANK, AIEE');
+        // FIXME: bailout, file shrank, aiee
+    }
     while (this.local_size > this.remote_size) {
         var len = Math.min(BLOCKSIZE, this.local_size-this.remote_size)
         this.emit('piece', this.remote_size, this.remote_size + len);
