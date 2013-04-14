@@ -9,7 +9,7 @@
     "request": "*",
     "streamline": "*",
     "glob": "*",
-    "backoff": "*",
+    "backoff": ">=2.2.0",
     "forever-agent": "*",
     "tea-error": "*"
   }

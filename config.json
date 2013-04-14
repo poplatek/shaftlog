@@ -8,7 +8,7 @@
                   "pattern": "/home/naked/*.png"}],
     
     "destinations": {
-        "primary":   {"url": "http://localhost/a/"},
-        "secondary": {"url": "http://localhost/b/"}
+        "primary":   {"url": "http://localhost:8080/a/"},
+        "secondary": {"url": "http://localhost:8080/b/"}
     }
 }

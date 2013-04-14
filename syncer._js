@@ -11,39 +11,6 @@ var backoff = require('backoff');
 
 var clie = require('./clie');
 
-function Datadir(config) {
-    EE.call(this);
-    this.sizes = {};
-    this.inodes = {};
-    var files = glob.sync(this.config.datadir + '/*', {nonull: false});
-    for (var i = 0; i < files.length; i++) {
-        var stats = fs.statSync(files[i]);
-        if (!stats.isFile()) continue;
-        this.sizes[files[i]] = stats.size;
-        this.inodes[stats.ino] = files[i];
-        // XXX: emit?
-    }
-}
-util.inherits(Datadir, EE);
-
-Datadir.prototype.add_file = function (fn) {
-    if (typeof this.sizes[fn] !== 'undefined') {
-        return;
-    }
-    var stats = fs.statSync(fn);
-    this.sizes[fn] = stats.size;
-    this.inodes[stats.ino] = fn;
-    // XXX: emit?
-}
-
-Datadir.prototype.has_inode = function (ino) {
-    if (typeof this.inodes[ino] !== 'undefined') {
-        return true;
-    } else {
-        return false;
-    }
-}
-
 function SyncHandler(config) {
     this.config = config;
     this.datadir = this.config.datadir;
@@ -84,7 +51,6 @@ SyncHandler.prototype.start = function () {
     }
     for (var k in this.names) {
         this.watches[k] = fs.watch(path.join(this.datadir, k), function (event, filename) {
-            console.log(event, filename);
             self.trigger_file(filename);
         });
     }    
@@ -252,7 +218,6 @@ FileSyncer.prototype.start_send_file = function () {
         self.state = 'ERROR';
         self.emit('error', self.last_err);
     });
-    this.call.failAfter(99999999); // XXX: upstream bug not, default failAfter
     this.call.setStrategy(this.backoff_strategy);
     this.call.start();
 }
@@ -270,7 +235,7 @@ FileSyncer.prototype.send_file = function (_) {
     }
 }
 
-exports.Scanner = Scanner;
 exports.SyncHandler = SyncHandler;
+exports.Scanner = Scanner;
 exports.HttpSyncTarget = HttpSyncTarget;
 exports.FileSyncer = FileSyncer;

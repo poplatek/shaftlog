@@ -74,41 +74,34 @@ function send_piece(remote_url, path, offset, len, size, cb) {
     options.agent = agent;
     var req = http.request(options, function (res) {
         res.on('end', function () {
-            if (done) return;
-            done = true;
+            if (done) return; done = true;
             switch (res.statusCode) {
             case 200: case 201: case 204:
-                cb(null, offset+len);
-                break;
+                return cb(null, offset+len); // just assume it was all saved correctly
             default:
-                cb(new Error('PUT response with status code: ' + res.statusCode));
-                break;
+                return cb(new Error('PUT response with status code: ' + res.statusCode));
             }
         });
         res.on('close', function () {
-            if (done) return;
-            done = true;
-            cb(new Error('response was cut off'));
+            if (done) return; done = true;
+            return cb(new Error('response was cut off'));
         });
         res.resume();
     });
     req.setTimeout(30000, function () {
-        if (done) return;
-        done = true;
-        cb(new Error('timeout'));
+        if (done) return; done = true;
         req.abort();
+        return cb(new Error('timeout'));
     });
     req.on('error', function (err) {
-        if (done) return;
-        done = true;
-        cb(err);
+        if (done) return; done = true;
+        return cb(err);
     });
     var read = fs.createReadStream(path, {start: offset, end: offset+len-1});
     read.on('error', function (err) {
-        if (done) return;
-        done = true;
-        cb(err);
+        if (done) return; done = true;
         req.abort();
+        return cb(err);
     });
     read.pipe(req);
 }
