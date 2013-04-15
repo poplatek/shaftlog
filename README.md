@@ -1,7 +1,11 @@
 lognimbus
 =========
 
-Secure log transport in clouds.
+Secure log transport in clouds. Lognimbus is essentially an
+append-only file synchronization tool designed for accurate and fast
+synchronization of log files. Lognimbus handles only the transport of
+log files to a centralized destination and leaves the processing of
+the log files for other tools.
 
 Features
 --------
@@ -18,7 +22,7 @@ Features
    immediately stored in geographically separate locations.
    
  - **Log file detection via glob patterns.** New log files are
-   detected via configured glob patterns automatically. Logfiles can
+   detected via configured glob patterns automatically. Log files can
    be gathered from several locations on the filesystem.
    
  - **Rapid detection of new log messages.** Detection of new log
@@ -26,8 +30,8 @@ Features
    delivered to log servers almost immediately.
    
  - **Log rotation is handled gracefully.** The assumption is that the
-   logfiles to be synchronized will be rotated. Log rotation will not
-   cause lost or duplicated log messages even if logfile rotation
+   log files to be synchronized will be rotated. Log rotation will not
+   cause lost or duplicated log messages even if log file rotation
    happens when the client is not running.
    
  - **Already delivered log messages are immutable.** Any log messages
