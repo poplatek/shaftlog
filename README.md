@@ -65,6 +65,51 @@ Usage
 Configuration
 -------------
 
+How it works
+------------
+
+Lognimbus consists of two parts. The first part is log file discovery
+which gathers all relevant log files under a single directory with
+stable file names. The second part is essentially `rsync --append` on
+stereoids which synchronizes any data appended to these files to log
+servers.
+
+### Discovery
+
+The filesystem is periodically scanned for files matching a glob
+pattern. For each matching file, the inode of the file is compared to
+see if the same inode already exists in the centralized log file
+directory. If the inode does not exist, the file is *hard linked* to a
+temporary name to verify that there was not a race condition between
+`fstat` and `link`, and then hard linked again to a stable name in the
+centralized log file directory. This imposes the requirement that the
+log files and the centralized log file directory must reside on the
+same file system, but allows for reliable detection of rotated log
+files.
+
+### Synchronization
+
+The synchronization uses HTTP and WebDAV as a protocol. For each file,
+the file size on the server is queried with a standard HEAD request on
+the path. Any missing data is then sent in chunks by doing a PUT
+request with a Content-Range header specifying the byte range to be
+appended to the file. The server is a special purpose web server that
+allows only HEAD and PUT requests and enforces that PUT requests can
+only append to files and never overwrite existing data. The protocol
+has been tested to be compatible with standard Apache WebDAV
+implementation, even though it would be unsuitable for actual use.
+
+Caveats
+-------
+
+ - The data directory must reside on the same filesystem as all the
+   log files being synchronized. If there is a need to use separate
+   partitions, use a separate client for each partition.
+   
+ - Log rotation via copy and truncate is not supported and will not be
+   supported because there is no way to ensure that log messages have
+   not been lost in between.
+   
 License
 -------
 
