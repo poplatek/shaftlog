@@ -65,6 +65,32 @@ Usage
 Configuration
 -------------
 
+The client is configured in `/etc/lognimbus/lognimbus-client.yaml`.
+
+    datadir: /var/log/lognimbus-source
+    
+    scan_interval: 30000
+    
+    log_paths:
+    - name: syslog
+      pattern: /var/log/syslog{,.1}
+    - name: user
+      pattern: /var/log/user{,.1}
+    - name: auth
+      pattern: /var/log/auth{,.1}
+
+    destinations:
+      primary:
+        url: http://log1.my.domain.invalid:10661/
+      secondary:
+        url: http://log1.my.domain.invalid:10661/
+    
+The server is configured in `/etc/lognimbus/lognimbus-server.yaml`.
+
+    datadir: /var/log/lognimbus-data
+    
+    bind_address: 0.0.0.0:10661
+
 How it works
 ------------
 
@@ -77,10 +103,10 @@ servers.
 ### Discovery
 
 The filesystem is periodically scanned for files matching a glob
-pattern. For each matching file, the inode of the file is compared to
-see if the same inode already exists in the centralized log file
-directory. If the inode does not exist, the file is *hard linked* to a
-temporary name to verify that there was not a race condition between
+pattern. For each matching file, the `inode` of the file is compared
+to see if the same `inode` already exists in the centralized log file
+directory. If the `inode` does not exist, the file is *hard linked* to
+a temporary name to verify that there was not a race condition between
 `fstat` and `link`, and then hard linked again to a stable name in the
 centralized log file directory. This imposes the requirement that the
 log files and the centralized log file directory must reside on the
@@ -92,12 +118,15 @@ files.
 The synchronization uses HTTP and WebDAV as a protocol. For each file,
 the file size on the server is queried with a standard HEAD request on
 the path. Any missing data is then sent in chunks by doing a PUT
-request with a Content-Range header specifying the byte range to be
+requests with a Content-Range header specifying the byte range to be
 appended to the file. The server is a special purpose web server that
 allows only HEAD and PUT requests and enforces that PUT requests can
 only append to files and never overwrite existing data. The protocol
 has been tested to be compatible with standard Apache WebDAV
-implementation, even though it would be unsuitable for actual use.
+implementation, even though it would be unsuitable for actual use. All
+files are synchronized independently of each other, and normal HTTP
+persistent connections are used to ensure that the server is not
+overwhelmed by new connections.
 
 Caveats
 -------
