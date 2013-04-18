@@ -1,0 +1,5 @@
+# data directory where to store all synchronized log files
+datadir: /var/log/lognimbus-server
+
+# address and port to listen for connections
+bind_address: 0.0.0.0:10661

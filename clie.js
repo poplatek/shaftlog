@@ -10,14 +10,16 @@ require('streamline').register({
 var program = require('commander');
 program
     .version('0.0.1')
-    .option('-d, --debug', 'enable debugging')
-    .option('-o, --one-shot', 'run log synchronization in one shot mode')
-    .option('-f, --config <path>', 'path to configuration file')
     .option('-b, --base <path>', 'treat base as filesystem root')
+    .option('-d, --debug', 'enable debugging')
+    .option('-f, --config <path>', 'path to configuration file')
+    .option('-o, --one-shot', 'run log synchronization in one shot mode')
     .parse(process.argv);
 
 var client = require('./client');
 
-var config = require('./config.json');
+require('js-yaml')
+
+var config = require('./lognimbux-client-config.yaml');
 var sh = new client.SyncHandler(config);
 sh.start();

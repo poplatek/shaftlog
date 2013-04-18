@@ -65,7 +65,7 @@ Usage
 Configuration
 -------------
 
-The client is configured in `/etc/lognimbus/lognimbus-client.yaml`.
+The client is configured in `/etc/lognimbus/lognimbus-client-config.yaml`.
 
     datadir: /var/log/lognimbus-source
     
@@ -85,7 +85,7 @@ The client is configured in `/etc/lognimbus/lognimbus-client.yaml`.
       secondary:
         url: http://log1.my.domain.invalid:10661/
     
-The server is configured in `/etc/lognimbus/lognimbus-server.yaml`.
+The server is configured in `/etc/lognimbus/lognimbus-server-config.yaml`.
 
     datadir: /var/log/lognimbus-data
     

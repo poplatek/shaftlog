@@ -1,0 +1,22 @@
+# data directory where to hard link new log files
+# NOTE: must be on the same filesystem as all log files
+datadir: /var/log/lognimbus-client
+
+# how often to scan for new log files in milliseconds
+scan_interval: 30000
+
+# list of paths to search for new log files
+scan_paths:
+- name: syslog
+  pattern: /var/log/syslog{,.1}
+- name: user
+  pattern: /var/log/user{,.1}
+- name: auth
+  pattern: /var/log/auth{,.1}
+
+# destinations to sync log files to
+destinations:
+  primary:
+    url: http://log1.my.domain.invalid:10661/
+  secondary:
+    url: http://log1.my.domain.invalid:10661/

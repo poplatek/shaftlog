@@ -18,7 +18,12 @@ var http = require('http');
 
 var server = require('./server');
 
-var sw = new server.SyncWriter('/home/naked/github/lognimbus/servdir');
+require('js-yaml')
+
+var config = require('./lognimbux-client-config.yaml');
+var sw = new server.SyncWriter(config.datadir);
+
+// XXX: parse hostname and port
 
 http.createServer(sw.handle_raw_request.bind(sw)).on('connection', function(socket) {
   socket.setTimeout(5000);
