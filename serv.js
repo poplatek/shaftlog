@@ -20,7 +20,7 @@ var server = require('./server');
 
 require('js-yaml')
 
-var config = require('./lognimbux-client-config.yaml');
+var config = require('./lognimbus-client-config.yaml');
 var sw = new server.SyncWriter(config.datadir);
 
 // XXX: parse hostname and port

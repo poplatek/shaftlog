@@ -20,6 +20,6 @@ var client = require('./client');
 
 require('js-yaml')
 
-var config = require('./lognimbux-client-config.yaml');
+var config = require('./lognimbus-client-config.yaml');
 var sh = new client.SyncHandler(config);
 sh.start();
