@@ -85,33 +85,33 @@ Configuration
 
 The client is configured in `/etc/shaftlog/shaftlog-client-config.yaml`.
 
-    ```YAML
-    datadir: /var/log/shaftlog-source
-    
-    scan_interval: 30000
-    
-    log_paths:
-    - name: syslog
-      pattern: /var/log/syslog{,.1}
-    - name: user
-      pattern: /var/log/user{,.1}
-    - name: auth
-      pattern: /var/log/auth{,.1}
+```YAML
+datadir: /var/log/shaftlog-source
 
-    destinations:
-      primary:
-        url: http://log1.my.domain.invalid:10661/
-      secondary:
-        url: http://log1.my.domain.invalid:10661/
-    ```
+scan_interval: 30000
+
+log_paths:
+- name: syslog
+  pattern: /var/log/syslog{,.1}
+- name: user
+  pattern: /var/log/user{,.1}
+- name: auth
+  pattern: /var/log/auth{,.1}
+
+destinations:
+  primary:
+    url: http://log1.my.domain.invalid:10661/
+  secondary:
+    url: http://log1.my.domain.invalid:10661/
+```
     
 The server is configured in `/etc/shaftlog/shaftlog-server-config.yaml`.
 
-    ```YAML
-    datadir: /var/log/shaftlog-data
-    
-    bind_address: 0.0.0.0:10661
-    ```
+```YAML
+datadir: /var/log/shaftlog-data
+
+bind_address: 0.0.0.0:10661
+```
 
 How it works
 ------------
