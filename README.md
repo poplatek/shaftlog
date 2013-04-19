@@ -66,8 +66,15 @@ Features
    safe server decommissioning ensuring no log messages have been
    left undelivered.
 
+Installation
+------------
+
+TBD
+
 Usage
 -----
+
+TBD
 
 Configuration
 -------------
@@ -122,14 +129,14 @@ files.
 
 ### Synchronization
 
-The synchronization uses HTTP and WebDAV as a protocol. For each file,
-the file size on the server is queried with a standard HEAD request on
-the path. Any missing data is then sent in chunks by doing a PUT
-requests with a Content-Range header specifying the byte range to be
-appended to the file. The server is a special purpose web server that
-allows only HEAD and PUT requests and enforces that PUT requests can
-only append to files and never overwrite existing data. The protocol
-has been tested to be compatible with standard Apache WebDAV
+The synchronization uses HTTP and WebDAV protocols. For each file, the
+file size on the server is queried with a standard HEAD request on the
+path. Any missing data is then sent in chunks by doing a PUT requests
+with a Content-Range header specifying the byte range to be appended
+to the file. The server is a special purpose web server that allows
+only HEAD and PUT requests and enforces that PUT requests can only
+append to files and never overwrite existing data. The protocol has
+been tested to be compatible with standard Apache WebDAV
 implementation, even though it would be unsuitable for actual use. All
 files are synchronized independently of each other, and normal HTTP
 persistent connections are used to ensure that the server is not
