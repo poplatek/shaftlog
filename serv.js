@@ -27,4 +27,4 @@ var ss = new server.SyncServer(config.datadir);
 
 http.createServer(ss.handle_raw_request.bind(ss)).on('connection', function(socket) {
   socket.setTimeout(5000);
-}).listen(8080);
+}).listen(10661);

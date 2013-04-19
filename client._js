@@ -151,12 +151,13 @@ function HttpSyncTarget(base_url, source_dir) {
 }
 
 HttpSyncTarget.prototype.add_file = function (name) {
+    var self = this;
     if (this.syncers[name]) return;
     var sync = new HttpFileSyncer(url.resolve(this.base_url, name), path.join(this.source_dir, name), this.agent);
-    sync.on('insync', function () { log.trace('file "' + name + '" in sync at "' + this.base_url + '"'); });
-    sync.on('sending', function () { log.trace('file "' + name + '" being sent to "' + this.base_url + '"'); });
-    sync.on('piece', function (start, end) { log.trace('file "' + name + '" bytes ' + start + '-' + end + 'sent to "' + this.base_url + '"'); });
-    sync.on('error', function (err) { log.trace('file "' + name + '" error at "' + this.base_url + '": ' + err); });
+    sync.on('insync', function () { log.trace('file "' + name + '" in sync at "' + self.base_url + '"'); });
+    sync.on('sending', function () { log.trace('file "' + name + '" being sent to "' + self.base_url + '"'); });
+    sync.on('piece', function (start, end) { log.trace('file "' + name + '" bytes ' + start + '-' + end + 'sent to "' + self.base_url + '"'); });
+    sync.on('error', function (err) { log.trace('file "' + name + '" error at "' + self.base_url + '": ' + err); });
     this.syncers[name] = sync;
 }
 
