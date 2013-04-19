@@ -1,11 +1,10 @@
 lognimbus
 =========
 
-Secure log transport in clouds. Lognimbus is essentially an
-append-only file synchronization tool designed for accurate and fast
-synchronization of log files. Lognimbus handles only the transport of
-log files to a centralized destination and leaves the processing of
-the log files for other tools.
+Secure log transport in clouds. Lognimbus is a secure, highly
+available, fault tolerant log file synchronization tool. Lognimbus
+handles only the transport of log files to a centralized destination
+and leaves the processing of the log files for other tools.
 
 Features
 --------
@@ -138,7 +137,28 @@ Caveats
  - Log rotation via copy and truncate is not supported and will not be
    supported because there is no way to ensure that log messages have
    not been lost in between.
-   
+
+Motivation
+----------
+
+There are a number of great choices for centralized logging in cloud
+environments, each offering very nice log processing and aggregation
+features. However, picking between these choices becomes difficult
+when including the log transport method in the comparison. Most do not
+provide strict once-and-only-once semantics for log delivery in a
+secure and fault tolerant fashion. Lognimbus can be used to solve the
+log transport shortcomings they might have, allowing any one of these
+tools to be used to process the delivered log files.
+
+Other logging software
+----------------------
+
+ - [**FLUME**](http://flume.apache.org/)
+ - [**Graylog2**](http://graylog2.org/)
+ - [**logstash**](http://logstash.net/)
+ - [**Scribe**](https://github.com/facebook/Scribe)
+ - [**rsyslog**](http://www.rsyslog.com/)
+
 License
 -------
 
