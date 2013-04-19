@@ -14,7 +14,7 @@ program
     .option('-f, --config <path>', 'path to configuration file')
     .parse(process.argv);
 
-var CONFIG_PATH = '/etc/lognimbus-server-config.yaml';
+var CONFIG_PATH = '/etc/shaftlog-server-config.yaml';
 
 var http = require('http');
 

@@ -1,5 +1,5 @@
 {
-    "datadir": "/home/naked/github/lognimbus/syncdir",
+    "datadir": "/home/naked/github/shaftlog/syncdir",
 
     "scan_interval": 30000,
     "logpaths": [{"name": "jpgs",

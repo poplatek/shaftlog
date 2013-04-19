@@ -1,8 +1,8 @@
-lognimbus
+shaftlog
 =========
 
-Secure log transport in clouds. Lognimbus is a secure, highly
-available, fault tolerant log file synchronization tool. Lognimbus
+Secure log transport in clouds. Shaftlog is a secure, highly
+available, fault tolerant log file synchronization tool. Shaftlog
 handles only the transport of log files to a centralized destination
 and leaves the processing of the log files for other tools.
 
@@ -17,7 +17,7 @@ Features
    backup, no log messages are lost or duplicated if all the relevant
    log files are still present on log clients.
    
- - **Multiple independent destinations.** Lognimbus can deliver log
+ - **Multiple independent destinations.** Shaftlog can deliver log
    messages simultaneously to several log destinations. Problems with
    a single delivery destination do not affect the delivery of log
    messages to other destinations. This allows all log messages to be
@@ -79,9 +79,9 @@ TBD
 Configuration
 -------------
 
-The client is configured in `/etc/lognimbus/lognimbus-client-config.yaml`.
+The client is configured in `/etc/shaftlog/shaftlog-client-config.yaml`.
 
-    datadir: /var/log/lognimbus-source
+    datadir: /var/log/shaftlog-source
     
     scan_interval: 30000
     
@@ -99,16 +99,16 @@ The client is configured in `/etc/lognimbus/lognimbus-client-config.yaml`.
       secondary:
         url: http://log1.my.domain.invalid:10661/
     
-The server is configured in `/etc/lognimbus/lognimbus-server-config.yaml`.
+The server is configured in `/etc/shaftlog/shaftlog-server-config.yaml`.
 
-    datadir: /var/log/lognimbus-data
+    datadir: /var/log/shaftlog-data
     
     bind_address: 0.0.0.0:10661
 
 How it works
 ------------
 
-Lognimbus consists of two parts. The first part is log file discovery
+Shaftlog consists of two parts. The first part is log file discovery
 which gathers all relevant log files under a single directory with
 stable file names. The second part is essentially `rsync --append` on
 stereoids which synchronizes any data appended to these files to log
@@ -161,7 +161,7 @@ environments, each offering very nice log processing and aggregation
 features. However, picking between these choices becomes difficult
 when including the log transport method in the comparison. Most do not
 provide strict once-and-only-once semantics for log delivery in a
-secure and fault tolerant fashion. Lognimbus can be used to solve the
+secure and fault tolerant fashion. Shaftlog can be used to solve the
 log transport shortcomings they might have, allowing any one of these
 tools to be used to process the delivered log files.
 

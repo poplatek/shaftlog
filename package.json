@@ -1,13 +1,13 @@
 {
-  "name": "lognimbus",
+  "name": "shaftlog",
   "version": "0.0.1",
   "repository": {
     "type": "git",
-    "url": "git@github.com:nakedible/lognimbus.git"  
+    "url": "git@github.com:nakedible/shaftlog.git"  
   },
   "bin": {
-    "lognimbus-client": "./clie.js",
-    "lognimbus-server": "./serv.js"
+    "shaftlog-client": "./clie.js",
+    "shaftlog-server": "./serv.js"
   },
   "dependencies": {
     "request": "*",

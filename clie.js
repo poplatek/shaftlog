@@ -18,7 +18,7 @@ program
 
 var client = require('./client');
 
-var CONFIG_PATH = '/etc/lognimbus-client-config.yaml';
+var CONFIG_PATH = '/etc/shaftlog-client-config.yaml';
 
 require('js-yaml')
 var config = require(program.config || CONFIG_PATH);

@@ -1,6 +1,6 @@
 # data directory where to hard link new log files
 # NOTE: must be on the same filesystem as all log files
-datadir: /var/log/lognimbus-client
+datadir: /var/log/shaftlog-client
 
 # how often to scan for new log files in milliseconds
 scan_interval: 30000
