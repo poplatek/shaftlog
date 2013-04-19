@@ -9,16 +9,20 @@ and leaves the processing of the log files for other tools.
 Features
 --------
 
- - **Reliable log delivery.** Log messages are not lost or duplicated
-   due to network problems, hardware crashes, reboots, etc. Both
-   servers and clients can crash, be killed or be restarted at any
-   time without problems.
+ - **Reliable log delivery.** True once-and-only-once log message
+   delivery. Log messages are not lost or duplicated due to network
+   problems, hardware crashes, reboots, etc. Both servers and clients
+   can crash, be killed or be restarted at any time without
+   problems. Even if the log server gets restored from an earlier
+   backup, no log messages are lost or duplicated if all the relevant
+   log files are still present on log clients.
    
  - **Multiple independent destinations.** Lognimbus can deliver log
    messages simultaneously to several log destinations. Problems with
    a single delivery destination do not affect the delivery of log
    messages to other destinations. This allows all log messages to be
-   immediately stored in geographically separate locations.
+   immediately stored in geographically separate locations for maximum
+   fault tolerance.
    
  - **Log file detection via glob patterns.** New log files are
    detected via configured glob patterns automatically. Log files can
@@ -26,7 +30,9 @@ Features
    
  - **Rapid detection of new log messages.** Detection of new log
    messages is triggered by `inotify` so new log messages will be
-   delivered to log servers almost immediately.
+   delivered to log servers almost immediately. This means that even
+   though the log synchronization is file based, the log stream can be
+   viewed in real-time at the log server.
    
  - **Log rotation is handled gracefully.** The assumption is that the
    log files to be synchronized will be rotated. Log rotation will not
@@ -34,17 +40,19 @@ Features
    happens when the client is not running.
    
  - **Already delivered log messages are immutable.** Any log messages
-   that have been delivered can not be modified. This makes the log
-   delivery suitable for audit logging as well.
+   that have been delivered can not be modified. This combined with
+   rapid detection of new log messages makes the log delivery uniquely
+   suited for audit logging.
    
  - **Log delivery is fast.** Log delivery progresses usually as fast
    as the filesystem or network can manage. There is no separate
    processing per log message, so the only limitation is the raw
-   transfer speed. Achieving 100 MB/s is not uncommon.
+   transfer speed. Achieving 100 MB/s is not uncommon. The transport
+   protocol is TCP so it will behave nicely with competing transfers.
 
  - **Log file format is arbitrary.** Log delivery works with all files
    that are strictly append-only. This means that in addition to
-   normal text-based log files it is suitable for json-based log
+   normal text-based log files it is suitable for JSON-based log
    files, sudo I/O logs, MySQL binlogs, etc.
    
  - **PLANNED: Transport is encrypted and authenticated.** All
