@@ -5,10 +5,10 @@ shaftlog
 notice will be changed when the software is deemed ready for general
 use.**
 
-Secure log transport in clouds. Shaftlog is a secure, highly
-available, fault tolerant log file synchronization tool. Shaftlog
-handles only the transport of log files to a centralized destination
-and leaves the processing of the log files for other tools.
+Shaftlog is a secure, highly available, fault tolerant log file
+synchronization tool. Shaftlog handles only the transport of log files
+to a centralized destination and leaves the processing of the log
+files for other tools.
 
 Features
 --------
