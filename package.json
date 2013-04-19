@@ -5,6 +5,7 @@
     "type": "git",
     "url": "git@github.com:nakedible/shaftlog.git"  
   },
+  "license": "MIT",
   "bin": {
     "shaftlog-client": "./clie.js",
     "shaftlog-server": "./serv.js"
