@@ -181,5 +181,6 @@ Other logging software
 License
 -------
 
-Copyright (c) 2013 Poplatek
+Copyright (c) 2013 Poplatek.
+
 Licensed under the MIT license.
