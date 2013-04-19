@@ -5,6 +5,10 @@
     "type": "git",
     "url": "git@github.com:nakedible/lognimbus.git"  
   },
+  "bin": {
+    "lognimbus-client": "./clie.js",
+    "lognimbus-server": "./serv.js"
+  },
   "dependencies": {
     "request": "*",
     "streamline": "*",
