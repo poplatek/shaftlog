@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Secure, highly available, and fault tolerant log transport",
   "keywords": ["log", "logging"],
-  "bugs": "http://github.com/poplatek/shaftlog/issues"
+  "bugs": "http://github.com/poplatek/shaftlog/issues",
   "license": "MIT",
   "repository": {
     "type": "git",
