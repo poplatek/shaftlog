@@ -11,7 +11,9 @@ var glob = require('glob');
 var backoff = require('backoff');
 var ForeverAgent = require('forever-agent');
 
-function SyncHandler(config) {
+var log = require('./logger')('client');
+
+function SyncClient(config) {
     this.config = config;
     this.datadir = this.config.datadir;
     this.names = {};
@@ -22,9 +24,11 @@ function SyncHandler(config) {
         var dest = this.config.destinations[k];
         this.targets[k] = new HttpSyncTarget(dest.url, this.datadir);
     }
+    // TODO: make scanning files recursive and filter out eligible files better
     var files = fs.readdirSync(this.datadir);
     for (var i = 0; i < files.length; i++) {
         if (files[i].indexOf('.tmp.') === 0) {
+            log.debug('unlinking leftover temporary file: ' + path.join(this.datadir, files[i]));
             fs.unlinkSync(path.join(this.datadir, files[i]));
         } else {
             var stat = fs.statSync(path.join(this.datadir, files[i]));
@@ -39,12 +43,12 @@ function SyncHandler(config) {
     this.scanner.on('added', this.add_file.bind(this));
 }
 
-SyncHandler.prototype.has_file = function (fn, stat) {
+SyncClient.prototype.has_file = function (fn, stat) {
     if (this.inodes[stat.ino]) return true;
     else return false;
 }
 
-SyncHandler.prototype.start = function () {
+SyncClient.prototype.start = function () {
     var self = this;
     for (var k in this.targets) {
         this.targets[k].trigger_all();
@@ -60,7 +64,7 @@ SyncHandler.prototype.start = function () {
     });
 }
 
-SyncHandler.prototype.add_file = function (name) {
+SyncClient.prototype.add_file = function (name) {
     var self = this;
     var stat = fs.statSync(path.join(this.datadir, name));
     this.names[name] = true;
@@ -75,7 +79,7 @@ SyncHandler.prototype.add_file = function (name) {
     });
 }
 
-SyncHandler.prototype.trigger_file = function (name) {
+SyncClient.prototype.trigger_file = function (name) {
     for (var k in this.targets) {
         this.targets[k].trigger_file(name);
     }
@@ -92,11 +96,11 @@ util.inherits(Scanner, EE);
 
 Scanner.prototype.scanloop = function (_) {
     do {
-        console.log('STARTING SCAN');
+        log.debug('scanning for new files');
         try {
             this.do_scans(_);
         } catch (e) {
-            console.log('SCAN ERROR: ' + e);
+            log.error('new file scan failed, retrying later: ' + e);
         }
         setTimeout(_, this.scan_interval);
     } while (!this.exit)
@@ -111,7 +115,7 @@ Scanner.prototype.do_scans = function (_) {
             try {
                 this.handle_file(files[j], logpath, _);
             } catch (e) {
-                console.log('FILE ERROR: ' + e);
+                log.warn('handling file "' + files[j] + '" failed: ' + e);
             }
         }
     }
@@ -132,14 +136,15 @@ Scanner.prototype.handle_file = function (fn, logpath, _) {
         return true;
     } else {
         fs.unlink(tmppath, _);
-        console.log('FILE SWAPPED OUT FROM UNDERNEATH, UNLINKING: ' + path.basename(fn));
+        log.warn('race condition when linking file, unlinking: ' + fn);
         // XXX: trigger rescan?
         return false;
     }
 }
 
 function HttpSyncTarget(base_url, source_dir) {
-    this.base_url = base_url; // XXX: base url must end in slash
+    // TODO: enforce that base_url ends in a slash
+    this.base_url = base_url;
     this.source_dir = source_dir;
     this.syncers = {};
     this.agent = new ForeverAgent();
@@ -148,10 +153,10 @@ function HttpSyncTarget(base_url, source_dir) {
 HttpSyncTarget.prototype.add_file = function (name) {
     if (this.syncers[name]) return;
     var sync = new HttpFileSyncer(url.resolve(this.base_url, name), path.join(this.source_dir, name), this.agent);
-    sync.on('insync', function () { console.log('IN SYNC!'); });
-    sync.on('sending', function () { console.log('SENDING!'); });
-    sync.on('piece', function (start, end) { console.log('  PIECE: ' + start + '-' + end); });
-    sync.on('error', function (err) { console.log('ERROR: ' + err); console.log(err.stack); });
+    sync.on('insync', function () { log.trace('file "' + name + '" in sync at "' + this.base_url + '"'); });
+    sync.on('sending', function () { log.trace('file "' + name + '" being sent to "' + this.base_url + '"'); });
+    sync.on('piece', function (start, end) { log.trace('file "' + name + '" bytes ' + start + '-' + end + 'sent to "' + this.base_url + '"'); });
+    sync.on('error', function (err) { log.trace('file "' + name + '" error at "' + this.base_url + '": ' + err); });
     this.syncers[name] = sync;
 }
 
@@ -230,7 +235,7 @@ HttpFileSyncer.prototype.send_file = function (_) {
     }
     this.local_size = get_local_size(this.source_path, _);
     if (this.local_size < this.remote_size) {
-        console.log('FILE SHRANK, AIEE');
+        log.error('FILE SHRANK, AIEE');
         // FIXME: bailout, file shrank, aiee
     }
     while (this.local_size > this.remote_size) {
@@ -341,7 +346,7 @@ function send_piece(agent, remote_url, path, offset, len, size, cb) {
     read.pipe(req);
 }
 
-exports.SyncHandler = SyncHandler;
+exports.SyncClient = SyncClient;
 exports.Scanner = Scanner;
 exports.HttpSyncTarget = HttpSyncTarget;
 exports.HttpFileSyncer = HttpFileSyncer;

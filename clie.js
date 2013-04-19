@@ -19,7 +19,7 @@ program
 var client = require('./client');
 
 require('js-yaml')
-
 var config = require('./lognimbus-client-config.yaml');
-var sh = new client.SyncHandler(config);
-sh.start();
+
+var sc = new client.SyncClient(config);
+sc.start();

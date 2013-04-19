@@ -8,8 +8,9 @@ var util = require('util');
 
 var terr = require('tea-error');
 
-var HttpError = terr('HttpError');
+var log = require('./logger')('server');
 
+var HttpError = terr('HttpError');
 var DEBUG = false;
 
 function make_parent_directories(filename, _) {
@@ -65,18 +66,18 @@ function pipe_request(request, stream, cb) {
     return;
 }
 
-function SyncWriter(destdir) {
+function SyncServer(destdir) {
     this.destdir = destdir;
     this.locks = {};
 }
 
-SyncWriter.prototype.validate_path = function (uri) {
+SyncServer.prototype.validate_path = function (uri) {
     var m = uri.match(/^(\/([a-zA-Z0-9_-][a-zA-Z0-9._-]*)){1,2}$/);
     if (!m) return false;
     return true;
 }
 
-SyncWriter.prototype.handle_raw_request = function (request, response) {
+SyncServer.prototype.handle_raw_request = function (request, response) {
     return this.handle_request(request, response, function (err, val) {
         if (err) {
             if (err instanceof HttpError) {
@@ -100,7 +101,7 @@ SyncWriter.prototype.handle_raw_request = function (request, response) {
     });
 }
 
-SyncWriter.prototype.handle_request = function (request, response, _) {
+SyncServer.prototype.handle_request = function (request, response, _) {
     if (request.method === 'HEAD') {
         return this.handle_head(request, response, _);
     } else if (request.method === 'PUT') {
@@ -110,7 +111,7 @@ SyncWriter.prototype.handle_request = function (request, response, _) {
     }
 }
 
-SyncWriter.prototype.handle_head = function (request, response, _) {
+SyncServer.prototype.handle_head = function (request, response, _) {
     var uri = url.parse(request.url).pathname
     if (!this.validate_path(uri)) throw new HttpError('request path not accepted', {http_status: 400});
     var filename = path.join(this.destdir, uri);
@@ -122,7 +123,7 @@ SyncWriter.prototype.handle_head = function (request, response, _) {
     }
 }
 
-SyncWriter.prototype.handle_put = function (request, response, _) {
+SyncServer.prototype.handle_put = function (request, response, _) {
     var uri = url.parse(request.url).pathname
     if (!this.validate_path(uri)) throw new HttpError('request path not accepted', {http_status: 400});
     var filename = path.join(this.destdir, uri);
@@ -156,4 +157,4 @@ SyncWriter.prototype.handle_put = function (request, response, _) {
 }
 
 exports.make_parent_directories = make_parent_directories;
-exports.SyncWriter = SyncWriter;
+exports.SyncServer = SyncServer;

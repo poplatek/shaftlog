@@ -21,10 +21,10 @@ var server = require('./server');
 require('js-yaml')
 
 var config = require('./lognimbus-client-config.yaml');
-var sw = new server.SyncWriter(config.datadir);
+var ss = new server.SyncServer(config.datadir);
 
-// XXX: parse hostname and port
+// TODO: parse hostname and port
 
-http.createServer(sw.handle_raw_request.bind(sw)).on('connection', function(socket) {
+http.createServer(ss.handle_raw_request.bind(ss)).on('connection', function(socket) {
   socket.setTimeout(5000);
 }).listen(8080);
