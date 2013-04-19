@@ -18,8 +18,10 @@ program
 
 var client = require('./client');
 
+var CONFIG_PATH = '/etc/lognimbus-client-config.yaml';
+
 require('js-yaml')
-var config = require('./lognimbus-client-config.yaml');
+var config = require(program.config || CONFIG_PATH);
 
 var sc = new client.SyncClient(config);
 sc.start();

@@ -14,17 +14,17 @@ program
     .option('-f, --config <path>', 'path to configuration file')
     .parse(process.argv);
 
+var CONFIG_PATH = '/etc/lognimbus-server-config.yaml';
+
 var http = require('http');
 
 var server = require('./server');
 
 require('js-yaml')
 
-var config = require('./lognimbus-client-config.yaml');
+var config = require(program.config || CONFIG_PATH);
 var ss = new server.SyncServer(config.datadir);
 
-// TODO: parse hostname and port
-
 http.createServer(ss.handle_raw_request.bind(ss)).on('connection', function(socket) {
-  socket.setTimeout(5000);
-}).listen(10661);
+  socket.setTimeout(config.idle_timeout);
+}).listen(config.listen_port, config.bind_address);

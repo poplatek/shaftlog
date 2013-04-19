@@ -57,7 +57,7 @@ SyncClient.prototype.start = function () {
         this.watches[k] = fs.watch(path.join(this.datadir, k), function (event, filename) {
             self.trigger_file(filename);
         });
-    }    
+    }
     this.scanner.scanloop(function (err, val) {
         if (err) console.log('SCANLOOP ERR: ' + err);
         else console.log('SCANLOOP FINISHED!');
@@ -89,7 +89,7 @@ function Scanner(destdir, tester, config) {
     EE.call(this);
     this.destdir = destdir;
     this.tester = tester;
-    this.logpaths = config.logpaths || [];
+    this.logpaths = config.scan_paths || [];
     this.scan_interval = config.scan_interval || 30000;
 }
 util.inherits(Scanner, EE);
@@ -156,7 +156,7 @@ HttpSyncTarget.prototype.add_file = function (name) {
     var sync = new HttpFileSyncer(url.resolve(this.base_url, name), path.join(this.source_dir, name), this.agent);
     sync.on('insync', function () { log.trace('file "' + name + '" in sync at "' + self.base_url + '"'); });
     sync.on('sending', function () { log.trace('file "' + name + '" being sent to "' + self.base_url + '"'); });
-    sync.on('piece', function (start, end) { log.trace('file "' + name + '" bytes ' + start + '-' + end + 'sent to "' + self.base_url + '"'); });
+    sync.on('piece', function (start, end) { log.trace('file "' + name + '" bytes ' + start + '-' + end + ' sent to "' + self.base_url + '"'); });
     sync.on('error', function (err) { log.trace('file "' + name + '" error at "' + self.base_url + '": ' + err); });
     this.syncers[name] = sync;
 }
