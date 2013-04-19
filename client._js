@@ -6,12 +6,23 @@ var http = require('http');
 var url = require('url');
 var EE = require('events').EventEmitter;
 var util = require('util');
+var os = require('os');
 
 var glob = require('glob');
 var backoff = require('backoff');
 var ForeverAgent = require('forever-agent');
 
 var log = require('./logger')('client');
+
+var format = function (str, col) {
+    col = typeof col === 'object' ? col : Array.prototype.slice.call(arguments, 1);
+
+    return str.replace(/\{\{|\}\}|\{(\w+)\}/g, function (m, n) {
+        if (m == "{{") { return "{"; }
+        if (m == "}}") { return "}"; }
+        return col[n];
+    });
+};
 
 function SyncClient(config) {
     this.config = config;
@@ -144,7 +155,8 @@ Scanner.prototype.handle_file = function (fn, logpath, _) {
 
 function HttpSyncTarget(base_url, source_dir) {
     // TODO: enforce that base_url ends in a slash
-    this.base_url = base_url;
+    // TODO: add machine_id, perhaps amazon instance id as well? /var/lib/dbus/machine-id
+    this.base_url = format(base_url, {hostname: os.hostname()});
     this.source_dir = source_dir;
     this.syncers = {};
     this.agent = new ForeverAgent();
