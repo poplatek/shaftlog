@@ -1,11 +1,14 @@
 {
   "name": "shaftlog",
   "version": "0.0.1",
+  "description": "Secure, highly available, and fault tolerant log transport",
+  "keywords": ["log", "logging"],
+  "bugs": "http://github.com/poplatek/shaftlog/issues"
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git@github.com:nakedible/shaftlog.git"  
+    "url": "https://github.com/poplatek/shaftlog.git"
   },
-  "license": "MIT",
   "bin": {
     "shaftlog-client": "./clie.js",
     "shaftlog-server": "./serv.js"
@@ -20,5 +23,9 @@
     "commander": "*",
     "winston": "*",
     "js-yaml": "*"
-  }
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "preferGlobal": true
 }
