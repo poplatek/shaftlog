@@ -177,4 +177,5 @@ Other logging software
 License
 -------
 
-TBD
+Copyright (c) 2013 Poplatek
+Licensed under the MIT license.
