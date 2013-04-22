@@ -28,7 +28,7 @@ try {
     var config_data = fs.readFileSync(config_path, 'utf-8');
     config = yaml.load(config_data, {filename: config_path,
                                      strict: true});
-    // XXX: validate config
+    if (!config.datadir) throw new Error('datadir must be specified in configuration');
 } catch (e) {
     console.error('could not load config file: ' + e);
     process.exit(1);
