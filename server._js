@@ -11,7 +11,6 @@ var terr = require('tea-error');
 var log = require('./logger')('server');
 
 var HttpError = terr('HttpError');
-var DEBUG = false;
 
 function make_parent_directories(filename, _) {
     var dir = path.dirname(filename);
@@ -66,13 +65,14 @@ function pipe_request(request, stream, cb) {
     return;
 }
 
-function SyncServer(destdir) {
+function SyncServer(destdir, debug_mode) {
     this.destdir = destdir;
     this.locks = {};
+    this.debug_mode = debug_mode === true;
 }
 
 SyncServer.prototype.validate_path = function (uri) {
-    var m = uri.match(/^(\/([a-zA-Z0-9_-][a-zA-Z0-9._-]*)){1,2}$/);
+    var m = uri.match(/^(\/([a-zA-Z0-9_-][a-zA-Z0-9._-]*)){1,}$/);
     if (!m) return false;
     return true;
 }
@@ -81,14 +81,16 @@ SyncServer.prototype.handle_raw_request = function (request, response) {
     return this.handle_request(request, response, function (err, val) {
         if (err) {
             if (err instanceof HttpError) {
-                var msg = DEBUG ? err.stack : String(err) + '\n';
+                var msg = this.debug_mode ? err.stack : String(err) + '\n';
+                if (err.http_status !== 404) log.warn('CLIENT ERROR: ' + err); // XXX: make better
                 response.writeHead(err.http_status || 500, {'Content-Type': 'text/plain',
                                                             'Content-Length': msg.length});
                 if (request.method !== 'HEAD') response.write(msg);
                 response.end();
             } else {
                 var msg = 'internal error\n';
-                if (DEBUG) msg += err.stack + '\n';
+                log.error('INTERNAL ERROR: ' + err); // XXX: make better
+                if (this.debug_mode) msg += err.stack + '\n';
                 response.writeHead(500, {'Content-Type': 'text/plain',
                                          'Content-Length': msg.length});
                 if (request.method !== 'HEAD') response.write(msg);
@@ -115,6 +117,7 @@ SyncServer.prototype.handle_head = function (request, response, _) {
     var uri = url.parse(request.url).pathname
     if (!this.validate_path(uri)) throw new HttpError('request path not accepted', {http_status: 400});
     var filename = path.join(this.destdir, uri);
+    // no locking as any such errors will be caught at PUT stage anyway
     var local_size = get_file_size(filename, _);
     if (local_size !== null) {
         return [200, {'Content-Length': String(local_size)}];
@@ -150,11 +153,10 @@ SyncServer.prototype.handle_put = function (request, response, _) {
         var success = pipe_request(request, ws, _);
         if (!success) throw new HttpError('request was not fully processed', {http_status: 400});
         local_size = get_file_size(filename, _);
-        return [204, {'Content-Length': '0'}]; //String(local_size)
+        return [204, {'Content-Length': '0'}]; // could be String(local_size), but atleast nodejs client does not treat 204 specially enough
     } finally {
         delete this.locks[filename];
     }
 }
 
-exports.make_parent_directories = make_parent_directories;
 exports.SyncServer = SyncServer;

@@ -23,7 +23,8 @@ var server = require('./server');
 require('js-yaml')
 
 var config = require(program.config || CONFIG_PATH);
-var ss = new server.SyncServer(config.datadir);
+// XXX: validate config
+var ss = new server.SyncServer(config.datadir, program.debug);
 
 http.createServer(ss.handle_raw_request.bind(ss)).on('connection', function(socket) {
   socket.setTimeout(config.idle_timeout);

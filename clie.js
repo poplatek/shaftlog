@@ -22,6 +22,7 @@ var CONFIG_PATH = '/etc/shaftlog-client-config.yaml';
 
 require('js-yaml')
 var config = require(program.config || CONFIG_PATH);
+// XXX: validate config
 
 var sc = new client.SyncClient(config);
 sc.start();
