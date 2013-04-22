@@ -16,13 +16,29 @@ program
     .option('-o, --one-shot', 'run log synchronization in one shot mode')
     .parse(process.argv);
 
-var client = require('./client');
-
 var CONFIG_PATH = '/etc/shaftlog-client-config.yaml';
+
+var path = require('path');
+var fs = require('fs');
+var yaml = require('js-yaml');
+
+var config_path = path.resolve('.', program.config || CONFIG_PATH);
+var config;
+try {
+    var config_data = fs.readFileSync(config_path, 'utf-8');
+    config = yaml.load(config_data, {filename: config_path,
+                                     strict: true});
+    // XXX: validate config
+} catch (e) {
+    console.error('could not load config file: ' + e);
+    process.exit(1);
+    return;
+}
 
 require('js-yaml')
 var config = require(program.config || CONFIG_PATH);
 // XXX: validate config
 
+var client = require('./client');
 var sc = new client.SyncClient(config);
 sc.start();

@@ -17,6 +17,6 @@ scan_paths:
 # destinations to sync log files to
 destinations:
   primary:
-    url: http://log1.my.domain.invalid:10661/
+    url: http://log1.my.domain.invalid:10655/
   secondary:
-    url: http://log1.my.domain.invalid:10661/
+    url: http://log2.my.domain.invalid:10655/
