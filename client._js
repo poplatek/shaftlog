@@ -24,15 +24,17 @@ var format = function (str, col) {
     });
 };
 
-function SyncClient(config) {
-    this.config = config;
-    this.datadir = this.config.datadir;
+function SyncClient(datadir, destinations, scan_paths, scan_interval) {
+    this.datadir = datadir;
+    this.destinations = destinations;
+    this.scan_paths = scan_paths;
+    this.scan_interval = scan_interval;
     this.names = {};
     this.inodes = {};
     this.watches = {};
     this.targets = {};
-    for (var k in this.config.destinations) {
-        var dest = this.config.destinations[k];
+    for (var k in this.destinations) {
+        var dest = this.destinations[k];
         this.targets[k] = new HttpSyncTarget(dest.url, this.datadir);
     }
     // TODO: make scanning files recursive and filter out eligible files better
@@ -50,7 +52,7 @@ function SyncClient(config) {
             }
         }
     }
-    this.scanner = new Scanner(this.datadir, this.has_file.bind(this), this.config);
+    this.scanner = new Scanner(this.datadir, this.has_file.bind(this), this.scan_paths, this.scan_interval);
     this.scanner.on('added', this.add_file.bind(this));
 }
 
@@ -96,12 +98,12 @@ SyncClient.prototype.trigger_file = function (name) {
     }
 }
 
-function Scanner(destdir, tester, config) {
+function Scanner(destdir, tester, scan_paths, scan_interval) {
     EE.call(this);
     this.destdir = destdir;
     this.tester = tester;
-    this.logpaths = config.scan_paths || [];
-    this.scan_interval = config.scan_interval || 30000;
+    this.logpaths = scan_paths;
+    this.scan_interval = scan_interval;
 }
 util.inherits(Scanner, EE);
 
