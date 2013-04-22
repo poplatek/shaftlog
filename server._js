@@ -78,10 +78,11 @@ SyncServer.prototype.validate_path = function (uri) {
 }
 
 SyncServer.prototype.handle_raw_request = function (request, response) {
+    var self = this;
     return this.handle_request(request, response, function (err, val) {
         if (err) {
             if (err instanceof HttpError) {
-                var msg = this.debug_mode ? err.stack : String(err) + '\n';
+                var msg = self.debug_mode ? err.stack : String(err) + '\n';
                 if (err.http_status !== 404) log.warn('CLIENT ERROR: ' + err); // XXX: make better
                 response.writeHead(err.http_status || 500, {'Content-Type': 'text/plain',
                                                             'Content-Length': msg.length});
@@ -90,7 +91,7 @@ SyncServer.prototype.handle_raw_request = function (request, response) {
             } else {
                 var msg = 'internal error\n';
                 log.error('INTERNAL ERROR: ' + err); // XXX: make better
-                if (this.debug_mode) msg += err.stack + '\n';
+                if (self.debug_mode) msg += err.stack + '\n';
                 response.writeHead(500, {'Content-Type': 'text/plain',
                                          'Content-Length': msg.length});
                 if (request.method !== 'HEAD') response.write(msg);

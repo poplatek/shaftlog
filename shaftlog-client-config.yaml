@@ -10,9 +10,9 @@ scan_paths:
 - name: syslog
   pattern: /var/log/syslog{,.1}
 - name: user
-  pattern: /var/log/user{,.1}
+  pattern: /var/log/user.log{,.1}
 - name: auth
-  pattern: /var/log/auth{,.1}
+  pattern: /var/log/auth.log{,.1}
 
 # destinations to sync log files to
 destinations:

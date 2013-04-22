@@ -35,10 +35,6 @@ try {
     return;
 }
 
-require('js-yaml')
-var config = require(program.config || CONFIG_PATH);
-// XXX: validate config
-
 var client = require('./client');
 var sc = new client.SyncClient(config);
 sc.start();

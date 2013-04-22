@@ -2,7 +2,7 @@
 datadir: /var/log/shaftlog-server
 
 # port to listen for connections
-listen_port: 10661
+listen_port: 10655
 
 # address to bind to for connections
 bind_address: 0.0.0.0
