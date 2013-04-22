@@ -14,7 +14,7 @@ var ForeverAgent = require('forever-agent');
 
 var log = require('./logger')('client');
 
-var format = function (str, col) {
+function format(str, col) {
     col = typeof col === 'object' ? col : Array.prototype.slice.call(arguments, 1);
 
     return str.replace(/\{\{|\}\}|\{(\w+)\}/g, function (m, n) {
@@ -23,6 +23,16 @@ var format = function (str, col) {
         return col[n];
     });
 };
+
+function get_machine_id() {
+    try {
+        return fs.readFileSync('/etc/machine-id').trim();
+    } catch (e) {}
+    try {
+        return fs.readFileSync('/var/lib/dbus/machine-id').trim();
+    } catch (e) {}
+    return "_unknown_"; // XXX: maybe append random bit?
+}
 
 function SyncClient(datadir, destinations, scan_paths, scan_interval) {
     this.datadir = datadir;
@@ -33,9 +43,13 @@ function SyncClient(datadir, destinations, scan_paths, scan_interval) {
     this.inodes = {};
     this.watches = {};
     this.targets = {};
+    this.replacements = {
+        hostname: os.hostname(),
+        machine: get_machine_id()
+    }
     for (var k in this.destinations) {
         var dest = this.destinations[k];
-        this.targets[k] = new HttpSyncTarget(dest.url, this.datadir);
+        this.targets[k] = new HttpSyncTarget(format(dest.url, this.replacements), this.datadir);
     }
     // TODO: make scanning files recursive and filter out eligible files better
     var files = fs.readdirSync(this.datadir);
@@ -157,8 +171,7 @@ Scanner.prototype.handle_file = function (fn, logpath, _) {
 
 function HttpSyncTarget(base_url, source_dir) {
     // TODO: enforce that base_url ends in a slash
-    // TODO: add machine_id, perhaps amazon instance id as well? /var/lib/dbus/machine-id
-    this.base_url = format(base_url, {hostname: os.hostname()});
+    this.base_url = base_url;
     this.source_dir = source_dir;
     this.syncers = {};
     this.agent = new ForeverAgent();

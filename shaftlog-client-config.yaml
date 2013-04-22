@@ -15,8 +15,9 @@ scan_paths:
   pattern: /var/log/auth.log{,.1}
 
 # destinations to sync log files to
+# NOTE: urls must end in slash and may contain the following substitutions
+#   {hostname}: value returned by gethostname(2)
+#   {machine}:  UUID identifier for machine (/etc/machine-id or /var/lib/dbus/machine-id) 
 destinations:
-  primary:
-    url: http://log1.my.domain.invalid:10655/
-  secondary:
-    url: http://log2.my.domain.invalid:10655/
+- url: http://log1.my.domain.invalid:10655/{hostname}/
+- url: http://log2.my.domain.invalid:10655/{hostname}/
