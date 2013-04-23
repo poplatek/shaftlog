@@ -83,7 +83,7 @@ TBD
 Configuration
 -------------
 
-The client is configured in `/etc/shaftlog/shaftlog-client-config.yaml`.
+The client is configured in `/etc/shaftlog-client-config.yaml`.
 
     # data directory where to hard link new log files
     # NOTE: must be on the same filesystem as all log files
@@ -126,7 +126,7 @@ The client is configured in `/etc/shaftlog/shaftlog-client-config.yaml`.
     - url: http://log1.my.domain.invalid:10655/{hostname}/
     - url: http://log2.my.domain.invalid:10655/{hostname}/
     
-The server is configured in `/etc/shaftlog/shaftlog-server-config.yaml`.
+The server is configured in `/etc/shaftlog-server-config.yaml`.
 
     # data directory where to store all synchronized log files
     datadir: /var/log/shaftlog-server
