@@ -26,6 +26,10 @@ scan_paths:
   pattern: /var/log/dmesg
 - name: cloudinit
   pattern: /var/log/cloud-init.log
+- name: shaftlog-client
+  pattern: /var/log/shaftlog-client.log
+- name: shaftlog-server
+  pattern: /var/log/shaftlog-server.log
 
 # destinations to sync log files to
 # NOTE: urls must end in slash and may contain the following substitutions
