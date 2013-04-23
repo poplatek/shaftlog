@@ -85,29 +85,60 @@ Configuration
 
 The client is configured in `/etc/shaftlog/shaftlog-client-config.yaml`.
 
-    datadir: /var/log/shaftlog-source
+    # data directory where to hard link new log files
+    # NOTE: must be on the same filesystem as all log files
+    datadir: /var/log/shaftlog-client
 
+    # log file to use for logs about synchronization
+    logfile: /var/log/shaftlog-client.log
+
+    # how often to scan for new log files in milliseconds
     scan_interval: 30000
 
-    log_paths:
-    - name: syslog
-      pattern: /var/log/syslog{,.1}
-    - name: user
-      pattern: /var/log/user{,.1}
-    - name: auth
-      pattern: /var/log/auth{,.1}
+    # list of paths to search for new log files
+    scan_paths:
+    - name: messages
+      pattern: /var/log/messages{,-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]}
+    - name: cron
+      pattern: /var/log/cron{,-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]}
+    - name: maillog
+      pattern: /var/log/maillog{,-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]}
+    - name: secure
+      pattern: /var/log/secure{,-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]}
+    - name: yum
+      pattern: /var/log/yum.log{,-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]}
+    - name: audit
+      pattern: /var/log/audit/audit.log{,.1,.2,.3,.4}
+    - name: dmesg
+      pattern: /var/log/dmesg
+    - name: cloudinit
+      pattern: /var/log/cloud-init.log
+    - name: shaftlog-client
+      pattern: /var/log/shaftlog-client.log
+    - name: shaftlog-server
+      pattern: /var/log/shaftlog-server.log
 
+    # destinations to sync log files to
+    # NOTE: urls must end in slash and may contain the following substitutions
+    #   {hostname}: value returned by gethostname(2)
+    #   {machine}:  UUID identifier for machine (/etc/machine-id or /var/lib/dbus/machine-id) 
     destinations:
-      primary:
-        url: http://log1.my.domain.invalid:10661/
-      secondary:
-        url: http://log1.my.domain.invalid:10661/
+    - url: http://log1.my.domain.invalid:10655/{hostname}/
+    - url: http://log2.my.domain.invalid:10655/{hostname}/
     
 The server is configured in `/etc/shaftlog/shaftlog-server-config.yaml`.
 
-    datadir: /var/log/shaftlog-data
+    # data directory where to store all synchronized log files
+    datadir: /var/log/shaftlog-server
 
-    bind_address: 0.0.0.0:10661
+    # log file to use for logs about synchronization
+    logfile: /var/log/shaftlog-server.log
+
+    # port to listen for connections
+    listen_port: 10655
+
+    # address to bind to for connections
+    bind_address: 0.0.0.0
 
 How it works
 ------------
