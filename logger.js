@@ -38,6 +38,7 @@ function initialize(path, level) {
     var fd = fs.openSync(logpath, 'a');
     var ino = fs.fstatSync(fd).ino;
     var ws = fs.createWriteStream(logpath, {fd: fd, encoding: 'utf8'});
+    // XXX: add handler for listening 'error'
     logstream = ws;
     logino = ino;
     loglevel = levels[level] || 0;
