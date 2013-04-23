@@ -2,17 +2,30 @@
 # NOTE: must be on the same filesystem as all log files
 datadir: /var/log/shaftlog-client
 
+# log file to use for logs about synchronization
+logfile: /var/log/shaftlog-client.log
+
 # how often to scan for new log files in milliseconds
 scan_interval: 30000
 
 # list of paths to search for new log files
 scan_paths:
-- name: syslog
-  pattern: /var/log/syslog{,.1}
-- name: user
-  pattern: /var/log/user.log{,.1}
-- name: auth
-  pattern: /var/log/auth.log{,.1}
+- name: messages
+  pattern: /var/log/messages{,-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]}
+- name: cron
+  pattern: /var/log/cron{,-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]}
+- name: maillog
+  pattern: /var/log/maillog{,-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]}
+- name: secure
+  pattern: /var/log/secure{,-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]}
+- name: yum
+  pattern: /var/log/yum.log{,-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]}
+- name: audit
+  pattern: /var/log/audit/audit.log{,.1,.2,.3,.4}
+- name: dmesg
+  pattern: /var/log/dmesg
+- name: cloudinit
+  pattern: /var/log/cloud-init.log
 
 # destinations to sync log files to
 # NOTE: urls must end in slash and may contain the following substitutions

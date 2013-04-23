@@ -22,6 +22,8 @@ var path = require('path');
 var fs = require('fs');
 var yaml = require('js-yaml');
 
+var logger = require('./logger');
+
 var config_path = path.resolve('.', program.config || CONFIG_PATH);
 var config;
 try {
@@ -29,6 +31,9 @@ try {
     config = yaml.load(config_data, {filename: config_path,
                                      strict: true});
     if (!config.datadir) throw new Error('datadir must be specified in configuration');
+    if (!config.logfile) throw new Error('logfile path must be specified in configuration');
+
+    logger.initialize(config.logfile, process.debug ? 'DEBUG' : 'INFO');
 } catch (e) {
     console.error('could not load config file: ' + e);
     process.exit(1);
@@ -38,7 +43,23 @@ try {
 var http = require('http');
 var server = require('./server');
 var ss = new server.SyncServer(config.datadir, program.debug);
+ss.start();
 
-http.createServer(ss.handle_raw_request.bind(ss)).on('connection', function(socket) {
+var srv = http.createServer(ss.handle_raw_request.bind(ss)).on('connection', function(socket) {
   socket.setTimeout(config.idle_timeout);
 }).listen(config.listen_port || DEFAULT_PORT, config.bind_address || DEFAULT_ADDRESS);
+
+process.on('SIGHUP', function () {
+    logger.reopen();
+});
+process.on('SIGINT', function () {
+    srv.close();
+    ss.close();
+});
+process.on('SIGTERM', function () {
+    srv.close();
+    ss.close();
+});
+process.on('exit', function () {
+    logger.close();
+});

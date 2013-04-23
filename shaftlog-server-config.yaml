@@ -1,6 +1,9 @@
 # data directory where to store all synchronized log files
 datadir: /var/log/shaftlog-server
 
+# log file to use for logs about synchronization
+logfile: /var/log/shaftlog-server.log
+
 # port to listen for connections
 listen_port: 10655
 
