@@ -38,7 +38,7 @@ try {
     
     // TODO: enforce that destination urls must end in slashes
 
-    logger.initialize(config.logfile, process.debug ? 'DEBUG' : 'INFO');
+    logger.initialize(config.logfile, program.debug ? 'DEBUG' : 'INFO');
 } catch (e) {
     console.error('could not load config file: ' + e);
     process.exit(1);

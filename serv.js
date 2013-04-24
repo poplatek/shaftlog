@@ -33,7 +33,7 @@ try {
     if (!config.datadir) throw new Error('datadir must be specified in configuration');
     if (!config.logfile) throw new Error('logfile path must be specified in configuration');
 
-    logger.initialize(config.logfile, process.debug ? 'DEBUG' : 'INFO');
+    logger.initialize(config.logfile, program.debug ? 'DEBUG' : 'INFO');
 } catch (e) {
     console.error('could not load config file: ' + e);
     process.exit(1);
