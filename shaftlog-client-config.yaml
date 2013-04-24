@@ -8,6 +8,9 @@ logfile: /var/log/shaftlog-client.log
 # how often to scan for new log files in milliseconds
 scan_interval: 30000
 
+# how often to print status information
+status_interval: 1000
+
 # list of paths to search for new log files
 scan_paths:
 - name: messages

@@ -18,6 +18,7 @@ program
 
 var CONFIG_PATH = '/etc/shaftlog-client-config.yaml';
 var DEFAULT_SCAN_INTERVAL = 30000;
+var DEFAULT_STATUS_INTERVAL = 1000;
 
 var path = require('path');
 var fs = require('fs');
@@ -46,7 +47,8 @@ try {
 }
 
 var client = require('./client');
-var sc = new client.SyncClient(config.datadir, config.destinations, config.scan_paths, config.scan_interval || DEFAULT_SCAN_INTERVAL);
+var sc = new client.SyncClient(config.datadir, config.destinations, config.scan_paths,
+                               config.scan_interval || DEFAULT_SCAN_INTERVAL, config.status_interval || DEFAULT_STATUS_INTERVAL);
 sc.start();
 
 process.on('SIGHUP', function () {

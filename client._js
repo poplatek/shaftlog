@@ -50,11 +50,12 @@ function get_machine_id(datadir) {
     return '_unknown_';
 }
 
-function SyncClient(datadir, destinations, scan_paths, scan_interval) {
+function SyncClient(datadir, destinations, scan_paths, scan_interval, status_interval) {
     this.datadir = datadir;
     this.destinations = destinations;
     this.scan_paths = scan_paths;
     this.scan_interval = scan_interval;
+    this.status_interval = status_interval;
     this.names = {};
     this.inodes = {};
     this.watches = {};
@@ -85,6 +86,7 @@ function SyncClient(datadir, destinations, scan_paths, scan_interval) {
     }
     this.scanner = new Scanner(this.datadir, this.has_file.bind(this), this.scan_paths, this.scan_interval);
     this.scanner.on('added', this.add_file.bind(this));
+    this.statuslogger = new StatusLogger(this, this.status_interval);
 }
 
 SyncClient.prototype.has_file = function (fn, stat) {
@@ -104,9 +106,14 @@ SyncClient.prototype.start = function () {
         });
     }
     this.scanner.start();
+    this.statuslogger.start();
 }
 
 SyncClient.prototype.close = function () {
+    if (this.statuslogger) {
+        this.statuslogger.close();
+        this.statuslogger = null;
+    }
     if (this.scanner) {
         this.scanner.close();
         this.scanner = null;
@@ -140,6 +147,81 @@ SyncClient.prototype.trigger_file = function (name) {
     for (var k in this.targets) {
         this.targets[k].trigger_file(name);
     }
+}
+
+function StatusLogger(client, log_interval) {
+    this.client = client;
+    this.log_interval = log_interval;
+    this.stats = this.gather_stats();
+    this.interval_id = null;
+    this.log = logger('status');
+}
+
+StatusLogger.prototype.start = function () {
+    this.interval_id = setInterval(this.status.bind(this), this.log_interval);
+}
+
+StatusLogger.prototype.close = function () {
+    if (this.interval_id) {
+        clearInterval(this.interval_id);
+        this.interval_id = null;
+    }
+}
+
+StatusLogger.prototype.gather_stats = function () {
+    var now = new Date();
+    var stats = {
+        scanner: {
+            new_file_count: this.client.scanner.new_file_count,
+            error_count: this.client.scanner.error_count
+        },
+        targets: {}
+    };
+    for (var k in this.client.targets) {
+        stats.targets[k] = {
+            url: this.client.targets[k].base_url,
+            bytes_sent: this.client.targets[k].bytes_sent,
+            error_count: this.client.targets[k].error_count,
+            in_sync: 0,
+            sending: 0,
+            transient_error: 0,
+            persistent_error: 0
+        }
+        for (var s in this.client.targets[k].syncers) {
+            var syncer = this.client.targets[k].syncers[s];
+            if (syncer.state === 'INSYNC') {
+                stats.targets[k].in_sync += 1;
+            } else if (syncer.state === 'INSYNC') {
+                stats.targets[k].sending += 1;
+            } else if (syncer.state === 'ERROR') {
+                if (now.getTime() - syncer.err_start.getTime() > 5000) {
+                    stats.targets[k].persistent_error += 1;
+                } else {
+                    stats.targets[k].transient_error += 1;
+                }
+            }
+        }
+    };
+    return stats;
+}
+
+StatusLogger.prototype.status = function () {
+    var olds = this.stats;
+    var news = this.gather_stats();
+    this.log.info(util.format('scanner: %d new files, %d file errors',
+                              news.scanner.new_file_count - olds.scanner.new_file_count,
+                              news.scanner.error_count - olds.scanner.error_count));
+    for (var k in news.targets) {
+        this.log.info(util.format('destination [%s]: %d bytes sent, %d sync errors, %d in sync, %d sending, %d transient error, %d persistent error',
+                                  news.targets[k].url,
+                                  news.targets[k].bytes_sent - olds.targets[k].bytes_sent,
+                                  news.targets[k].error_count - olds.targets[k].error_count,
+                                  news.targets[k].in_sync,
+                                  news.targets[k].sending,
+                                  news.targets[k].transient_error,
+                                  news.targets[k].persistent_error));
+    }
+    this.stats = news;
 }
 
 function Scanner(destdir, tester, scan_paths, scan_interval) {
@@ -238,7 +320,7 @@ HttpSyncTarget.prototype.add_file = function (name) {
         self.bytes_sent += end-start+1;
     });
     sync.on('error', function (err) {
-        self.log.trace('file "' + name + '" error at "' + self.base_url + '": ' + err);
+        self.log.debug('file "' + name + '" error at "' + self.base_url + '": ' + err);
         self.error_count += 1;
     });
     this.syncers[name] = sync;
