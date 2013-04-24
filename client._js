@@ -161,18 +161,6 @@ Scanner.prototype.run_scan = function () {
     });
 }
 
-Scanner.prototype.scanloop = function (_) {
-    do {
-        this.log.debug('scanning for new files');
-        try {
-            this.do_scans(_);
-        } catch (e) {
-            this.log.error('new file scan failed, retrying later: ' + e);
-        }
-        setTimeout(_, this.scan_interval);
-    } while (!this.exit)
-}
-
 Scanner.prototype.do_scans = function (_) {
     var statcache = {};
     for (var i = 0; i < this.logpaths.length; i++) {
