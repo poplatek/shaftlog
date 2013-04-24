@@ -213,7 +213,6 @@ Scanner.prototype.handle_file = function (fn, logpath, _) {
 }
 
 function HttpSyncTarget(base_url, source_dir) {
-    // TODO: enforce that base_url ends in a slash
     this.base_url = base_url;
     this.source_dir = source_dir;
     this.syncers = {};

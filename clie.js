@@ -35,6 +35,8 @@ try {
     if (!config.logfile) throw new Error('logfile path must be specified in configuration');
     if (!config.scan_paths) throw new Error('scan paths must be specified in configuration (but may be empty)');
     if (!config.destinations) throw new Error('destinations must be specified in configuration (but may be empty)');
+    
+    // TODO: enforce that destination urls must end in slashes
 
     logger.initialize(config.logfile, process.debug ? 'DEBUG' : 'INFO');
 } catch (e) {
