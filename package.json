@@ -13,9 +13,6 @@
     "shaftlog-client": "./clie.js",
     "shaftlog-server": "./serv.js"
   },
-  "scripts": {
-    "install": "env; set -ex; if [ \"x$npm_config_global\" != \"x\" ]; then cp shaftlog-client-config.yaml shaftlog-server-config.yaml /etc; mkdir /var/log/shaftlog-client /var/log/shaftlog-server; fi"
-  },
   "dependencies": {
     "streamline": ">=0.4.7",
     "glob": "~3",
