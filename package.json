@@ -14,7 +14,7 @@
     "shaftlog-server": "./serv.js"
   },
   "scripts": {
-    "install": "env"
+    "install": "env; set -ex; if [ \"x$npm_config_global\" != \"x\" ]; then cp shaftlog-{client,server}-config.yaml /etc; mkdir /var/log/shaftlog-{client,server}; fi"
   },
   "dependencies": {
     "streamline": ">=0.4.7",
