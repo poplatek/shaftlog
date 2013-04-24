@@ -24,14 +24,25 @@ function format(str, col) {
     });
 };
 
-function get_machine_id() {
+function get_machine_id(datadir) {
     try {
         return fs.readFileSync('/etc/machine-id').trim();
     } catch (e) {}
     try {
         return fs.readFileSync('/var/lib/dbus/machine-id').trim();
     } catch (e) {}
-    return "_unknown_"; // XXX: maybe append random bit?
+    if (!fs.existsSync(path.join(datadir, '.machine-id'))) {
+        try {
+            var uuid = require('crypto').randomBytes(16);
+            uuid[6] = (uuid[6] & 0x0f) | 0x40;
+            uuid[8] = (uuid[8] & 0x3f) | 0x80;
+            fs.writeFileSync(path.join(datadir, '.machine-id'), uuid.toString('hex') + '\n');
+        } catch (e) {}
+    }
+    try {
+        return fs.readFileSync(path.join(datadir, '.machine-id')).trim();
+    } catch (e) {}
+    return '_unknown_';
 }
 
 function SyncClient(datadir, destinations, scan_paths, scan_interval) {
@@ -45,7 +56,7 @@ function SyncClient(datadir, destinations, scan_paths, scan_interval) {
     this.targets = {};
     this.replacements = {
         hostname: os.hostname(),
-        machine: get_machine_id()
+        machine: get_machine_id(datadir)
     }
     this.log = logger('client');
     for (var k in this.destinations) {
