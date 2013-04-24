@@ -14,6 +14,11 @@ var ForeverAgent = require('forever-agent');
 
 var logger = require('./logger');
 
+var BLOCKSIZE = 1024*1024;
+var REQUEST_TIMEOUT = 30000;
+var BACKOFF_INITIAL_DELAY = 1000;
+var BACKOFF_MAX_DELAY = 300000;
+
 function format(str, col) {
     col = typeof col === 'object' ? col : Array.prototype.slice.call(arguments, 1);
 
@@ -268,8 +273,6 @@ HttpSyncTarget.prototype.trigger_file = function (name) {
     this.syncers[name].trigger_sync();
 }
 
-var BLOCKSIZE = 1024*1024;
-
 function HttpFileSyncer(target_url, source_path, agent) {
     EE.call(this);
     this.target_url = target_url;
@@ -283,8 +286,8 @@ function HttpFileSyncer(target_url, source_path, agent) {
     this.triggered = false;
     this.backoff_strategy = new backoff.FibonacciStrategy({
         randomizationFactor: 0.1,
-        initialDelay: 1000,
-        maxDelay: 300000,
+        initialDelay: BACKOFF_INITIAL_DELAY,
+        maxDelay: BACKOFF_MAX_DELAY,
     });
     this.call = null;
     this.log = logger('syncer');
@@ -317,7 +320,7 @@ HttpFileSyncer.prototype.start_send_file = function () {
         self.send_file(cb);
     }, function (err, val) {
         self.call = null;
-        if (err) throw new Error('backoff call bailed out!');
+        if (err) throw new Error('backoff gave up, should not happen!');
         if (self.triggered) {
             self.triggered = false;
             return self.start_send_file(); // XXX: maybe delay?
@@ -401,7 +404,7 @@ function get_remote_size(agent, remote_url, cb) {
         });
         res.resume();
     });
-    req.setTimeout(30000, function () {
+    req.setTimeout(REQUEST_TIMEOUT, function () {
         if (done) return;
         done = true;
         cb(new Error('timeout'));
@@ -440,7 +443,7 @@ function send_piece(agent, remote_url, path, offset, len, size, cb) {
         });
         res.resume();
     });
-    req.setTimeout(30000, function () {
+    req.setTimeout(REQUEST_TIMEOUT, function () {
         if (done) return; done = true;
         req.abort();
         return cb(new Error('timeout'));
