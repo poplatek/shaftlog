@@ -13,6 +13,9 @@
     "shaftlog-client": "./clie.js",
     "shaftlog-server": "./serv.js"
   },
+  "scripts": {
+    "install": "env"
+  },
   "dependencies": {
     "streamline": ">=0.4.7",
     "glob": "~3",
