@@ -134,6 +134,8 @@ function Scanner(destdir, tester, scan_paths, scan_interval) {
     this.scan_interval = scan_interval;
     this.interval_id = null;
     this.log = logger('scanner');
+    this.new_file_count = 0;
+    this.error_count = 0;
 }
 util.inherits(Scanner, EE);
 
@@ -171,6 +173,7 @@ Scanner.prototype.do_scans = function (_) {
                 this.handle_file(files[j], logpath, _);
             } catch (e) {
                 this.log.warn('handling file "' + files[j] + '" failed: ' + e);
+                this.error_count += 1;
             }
         }
     }
@@ -187,6 +190,7 @@ Scanner.prototype.handle_file = function (fn, logpath, _) {
         var realname = logpath.name + '.' + stats.mtime.getTime();
         fs.link(tmppath, path.join(this.destdir, realname), _);
         fs.unlink(tmppath, _);
+        this.new_file_count += 1;
         this.emit('added', realname);
         return true;
     } else {
@@ -204,16 +208,24 @@ function HttpSyncTarget(base_url, source_dir) {
     this.syncers = {};
     this.agent = new ForeverAgent();
     this.log = logger('target');
+    this.bytes_sent = 0;
+    this.error_count = 0;
 }
 
 HttpSyncTarget.prototype.add_file = function (name) {
     var self = this;
     if (this.syncers[name]) return;
     var sync = new HttpFileSyncer(url.resolve(this.base_url, name), path.join(this.source_dir, name), this.agent);
-    sync.on('insync', function () { this.log.trace('file "' + name + '" in sync at "' + self.base_url + '"'); });
-    sync.on('sending', function () { this.log.trace('file "' + name + '" being sent to "' + self.base_url + '"'); });
-    sync.on('piece', function (start, end) { this.log.trace('file "' + name + '" bytes ' + start + '-' + end + ' sent to "' + self.base_url + '"'); });
-    sync.on('error', function (err) { this.log.trace('file "' + name + '" error at "' + self.base_url + '": ' + err); });
+    sync.on('insync', function () { self.log.trace('file "' + name + '" in sync at "' + self.base_url + '"'); });
+    sync.on('sending', function () { self.log.trace('file "' + name + '" being sent to "' + self.base_url + '"'); });
+    sync.on('piece', function (start, end) {
+        self.log.trace('file "' + name + '" bytes ' + start + '-' + end + ' sent to "' + self.base_url + '"');
+        self.bytes_sent += end-start+1;
+    });
+    sync.on('error', function (err) {
+        self.log.trace('file "' + name + '" error at "' + self.base_url + '": ' + err);
+        self.error_count += 1;
+    });
     this.syncers[name] = sync;
 }
 
@@ -257,6 +269,7 @@ function HttpFileSyncer(target_url, source_path, agent) {
     this.remote_size = null;
     this.state = 'INIT';
     this.last_err = null;
+    this.err_start = null;
     this.triggered = false;
     this.backoff_strategy = new backoff.FibonacciStrategy({
         randomizationFactor: 0.1,
@@ -299,6 +312,7 @@ HttpFileSyncer.prototype.start_send_file = function () {
             self.triggered = false;
             return self.start_send_file(); // XXX: maybe delay?
         } else {
+            self.err_start = null;
             self.state = 'INSYNC';
             self.emit('insync');
         }
@@ -310,6 +324,9 @@ HttpFileSyncer.prototype.start_send_file = function () {
     this.call.on('backoff', function (number, delay, err) {
         self.remote_size = null;
         self.last_err = err;
+        if (self.err_start === null) {
+            self.err_start = new Date();
+        }
         self.state = 'ERROR';
         self.emit('error', self.last_err);
     });
