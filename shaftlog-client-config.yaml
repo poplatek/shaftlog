@@ -12,6 +12,19 @@ scan_interval: 30000
 status_interval: 1000
 
 # list of paths to search for new log files
+# NOTE:
+# - destination filename is specified by "rename" key
+# - filenames may contain the following substitutions:
+#   {name}:  pattern name in this configuration file
+#   {time}:  time of file detection in milliseconds
+#   {atime}: time of last access in milliseconds
+#   {mtime}: time of last modification in milliseconds
+#   {ctime}: time of last (inode) change in milliseconds
+#   {ino}:   inode number
+#   {dev}:   device number
+# - default rename pattern: "{name}.{mtime}"
+# - regex substitution on filename can be specified by "regex_from"
+#   and "regex_to"
 scan_paths:
 - name: messages
   pattern: /var/log/messages{,.+([0-9])!(.gz)}
@@ -33,6 +46,10 @@ scan_paths:
   pattern: /var/log/shaftlog-client.log{,.+([0-9])!(.gz)}
 - name: shaftlog-server
   pattern: /var/log/shaftlog-server.log{,.+([0-9])!(.gz)}
+- name: sudo-io
+  pattern: /var/log/sudo-io/**/{log,stderr,stdin,stdout,timing,ttyin,ttyout}
+  regex_from: "^/var/log/sudo-io/(.*)"
+  regex_to: "sudo-io/$1"
 
 # destinations to sync log files to
 # NOTE: urls must end in slash and may contain the following substitutions
