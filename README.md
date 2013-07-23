@@ -95,28 +95,48 @@ The client is configured in `/etc/shaftlog-client-config.yaml`.
     # how often to scan for new log files in milliseconds
     scan_interval: 30000
 
+    # how often to print status information
+    status_interval: 1000
+
     # list of paths to search for new log files
+    # NOTE:
+    # - destination filename is specified by "rename" key
+    # - filenames may contain the following substitutions:
+    #   {name}:  pattern name in this configuration file
+    #   {time}:  time of file detection in milliseconds
+    #   {atime}: time of last access in milliseconds
+    #   {mtime}: time of last modification in milliseconds
+    #   {ctime}: time of last (inode) change in milliseconds
+    #   {ino}:   inode number
+    #   {dev}:   device number
+    # - default rename pattern: "{name}.{mtime}"
+    # - regex substitution on filename can be specified by "regex_from"
+    #   and "regex_to"
     scan_paths:
     - name: messages
-      pattern: /var/log/messages{,-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]}
+      pattern: /var/log/messages{,.+([0-9])!(.gz)}
     - name: cron
-      pattern: /var/log/cron{,-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]}
+      pattern: /var/log/cron{,.+([0-9])!(.gz)}
     - name: maillog
-      pattern: /var/log/maillog{,-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]}
+      pattern: /var/log/maillog{,.+([0-9])!(.gz)}
     - name: secure
-      pattern: /var/log/secure{,-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]}
+      pattern: /var/log/secure{,.+([0-9])!(.gz)}
     - name: yum
-      pattern: /var/log/yum.log{,-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]}
+      pattern: /var/log/yum.log{,.+([0-9])!(.gz)}
     - name: audit
-      pattern: /var/log/audit/audit.log{,.1,.2,.3,.4}
+      pattern: /var/log/audit/audit.log{,.+([0-9])!(.gz)}
     - name: dmesg
-      pattern: /var/log/dmesg
+      pattern: /var/log/dmesg{,.+([0-9])!(.gz)}
     - name: cloudinit
-      pattern: /var/log/cloud-init.log
+      pattern: /var/log/cloud-init.log{,.+([0-9])!(.gz)}
     - name: shaftlog-client
-      pattern: /var/log/shaftlog-client.log
+      pattern: /var/log/shaftlog-client.log{,.+([0-9])!(.gz)}
     - name: shaftlog-server
-      pattern: /var/log/shaftlog-server.log
+      pattern: /var/log/shaftlog-server.log{,.+([0-9])!(.gz)}
+    - name: sudo-io
+      pattern: /var/log/sudo-io/**/{log,stderr,stdin,stdout,timing,ttyin,ttyout}
+      regex_from: "^/var/log/sudo-io/(.*)"
+      regex_to: "sudo-io/$1"
 
     # destinations to sync log files to
     # NOTE: urls must end in slash and may contain the following substitutions
