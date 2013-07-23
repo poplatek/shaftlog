@@ -1,6 +1,6 @@
 {
   "name": "shaftlog",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Secure, highly available, and fault tolerant log transport",
   "keywords": ["log", "logging"],
   "bugs": "http://github.com/poplatek/shaftlog/issues",
