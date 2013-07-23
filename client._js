@@ -50,6 +50,22 @@ function get_machine_id(datadir) {
     return '_unknown_';
 }
 
+function make_parent_directories(filename, _) {
+    var dir = path.dirname(filename);
+    try {
+        fs.mkdir(dir, _);
+    } catch (e) {
+        if (e.code === 'ENOENT') {
+            make_parent_directories(dir, _);
+            fs.mkdir(dir, _);
+        } else if (e.code == 'EEXIST') {
+            return;
+        } else {
+            throw e;
+        }
+    }
+}
+
 function SyncClient(datadir, destinations, scan_paths, scan_interval, status_interval) {
     this.datadir = datadir;
     this.destinations = destinations;
@@ -69,19 +85,21 @@ function SyncClient(datadir, destinations, scan_paths, scan_interval, status_int
         var dest = this.destinations[k];
         this.targets[k] = new HttpSyncTarget(format(dest.url, this.replacements), this.datadir);
     }
-    // TODO: make scanning files recursive and filter out eligible files better
-    var files = fs.readdirSync(this.datadir);
+    var tmpfiles = glob.sync('**/.tmp.*', {cwd: this.datadir, nonull: false});
+    for (var i = 0; i < tmpfiles.length; i++) {
+        this.log.debug('unlinking leftover temporary file: ' + path.join(this.datadir, tmpfiles[i]));
+        fs.unlinkSync(path.join(this.datadir, tmpfiles[i]));
+    }
+    var files = glob.sync('**/*', {cwd: this.datadir, nonull: false});
     for (var i = 0; i < files.length; i++) {
-        if (files[i].indexOf('.tmp.') === 0) {
-            this.log.debug('unlinking leftover temporary file: ' + path.join(this.datadir, files[i]));
-            fs.unlinkSync(path.join(this.datadir, files[i]));
-        } else {
-            var stat = fs.statSync(path.join(this.datadir, files[i]));
-            this.names[files[i]] = true;
-            this.inodes[stat.ino] = files[i];
-            for (var k in this.targets) {
-                this.targets[k].add_file(files[i]);
-            }
+        var stat = fs.statSync(path.join(this.datadir, files[i]));
+        if (!stat.isFile()) {
+            continue;
+        }
+        this.names[files[i]] = true;
+        this.inodes[stat.ino] = files[i];
+        for (var k in this.targets) {
+            this.targets[k].add_file(files[i]);
         }
     }
     this.scanner = new Scanner(this.datadir, this.has_file.bind(this), this.scan_paths, this.scan_interval);
@@ -286,7 +304,16 @@ Scanner.prototype.handle_file = function (fn, logpath, _) {
     fs.link(fn, tmppath, _);
     if (fs.stat(tmppath, _).ino === stats.ino) {
         var realname = logpath.name + '.' + stats.mtime.getTime();
-        fs.link(tmppath, path.join(this.destdir, realname), _);
+        try {
+            fs.link(tmppath, path.join(this.destdir, realname), _);
+        } catch (e) {
+            if (e.code === 'ENOENT') {
+                make_parent_directories(path.join(this.destdir, realname), _);
+                fs.link(tmppath, path.join(this.destdir, realname), _);
+            } else {
+                throw e;
+            }
+        }
         fs.unlink(tmppath, _);
         this.new_file_count += 1;
         this.emit('added', realname);
