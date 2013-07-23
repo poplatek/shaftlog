@@ -85,12 +85,12 @@ function SyncClient(datadir, destinations, scan_paths, scan_interval, status_int
         var dest = this.destinations[k];
         this.targets[k] = new HttpSyncTarget(format(dest.url, this.replacements), this.datadir);
     }
-    var tmpfiles = glob.sync('**/.tmp.*', {cwd: this.datadir, nonull: false});
+    var tmpfiles = glob.sync('**/.tmp.*', {cwd: this.datadir, nonull: false, silent: true});
     for (var i = 0; i < tmpfiles.length; i++) {
         this.log.debug('unlinking leftover temporary file: ' + path.join(this.datadir, tmpfiles[i]));
         fs.unlinkSync(path.join(this.datadir, tmpfiles[i]));
     }
-    var files = glob.sync('**/*', {cwd: this.datadir, nonull: false});
+    var files = glob.sync('**/*', {cwd: this.datadir, nonull: false, silent: true});
     for (var i = 0; i < files.length; i++) {
         var stat = fs.statSync(path.join(this.datadir, files[i]));
         if (!stat.isFile()) {
@@ -283,7 +283,7 @@ Scanner.prototype.do_scans = function (_) {
     var statcache = {};
     for (var i = 0; i < this.logpaths.length; i++) {
         var logpath = this.logpaths[i];
-        var files = glob(logpath.pattern, {nonull: false, statCache: statcache}, _);
+        var files = glob(logpath.pattern, {nonull: false, statCache: statcache, silent: true}, _);
         for (var j = 0; j < files.length; j++) {
             try {
                 this.handle_file(files[j], logpath, _);
