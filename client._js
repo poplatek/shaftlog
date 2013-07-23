@@ -303,7 +303,7 @@ Scanner.prototype.handle_file = function (fn, logpath, _) {
     var tmppath = path.join(this.destdir, '.tmp.' + stats.ino);
     fs.link(fn, tmppath, _);
     if (fs.stat(tmppath, _).ino === stats.ino) {
-        var realname = logpath.name + '.' + stats.mtime.getTime();
+        var realname = this.get_dest_name(fn, logpath, stats, _);
         try {
             fs.link(tmppath, path.join(this.destdir, realname), _);
         } catch (e) {
@@ -324,6 +324,27 @@ Scanner.prototype.handle_file = function (fn, logpath, _) {
         // XXX: trigger rescan?
         return false;
     }
+}
+
+Scanner.prototype.get_dest_name = function (fn, logpath, stats, _) {
+    var replacements = {
+        name: logpath.name,
+        time: new Date().getTime(),
+        atime: stats.atime.getTime(),
+        mtime: stats.mtime.getTime(),
+        ctime: stats.ctime.getTime(),
+        ino: stats.ino,
+        dev: stats.dev
+    };
+    var destname;
+    if (logpath.regex_from) {
+        destname = fn.replace(new RegExp(logpath.regex_from), logpath.regex_to);
+    } else if (logpath.rename) {
+        destname = logpath.rename;
+    } else {
+        destname = '{name}.{mtime}';
+    }
+    return format(destname, replacements);
 }
 
 function HttpSyncTarget(base_url, source_dir) {
