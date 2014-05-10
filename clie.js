@@ -18,7 +18,7 @@ program
 
 var CONFIG_PATH = '/etc/shaftlog-client-config.yaml';
 var DEFAULT_SCAN_INTERVAL = 30000;
-var DEFAULT_STATUS_INTERVAL = 1000;
+var DEFAULT_STATUS_INTERVAL = 300000;
 
 var path = require('path');
 var fs = require('fs');
