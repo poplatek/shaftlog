@@ -19,7 +19,13 @@ function make_parent_directories(filename, _) {
     } catch (e) {
         if (e.code === 'ENOENT') {
             make_parent_directories(dir, _);
-            fs.mkdir(dir, _);
+            try {
+                fs.mkdir(dir, _);
+            } if (e.code == 'EEXIST') {
+                return; // We might get an async race here so this is needed
+            } else {
+                throw e;
+            }
         } else if (e.code == 'EEXIST') {
             return;
         } else {
