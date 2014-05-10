@@ -83,7 +83,7 @@ SyncServer.prototype.start = function () {
 }
 
 SyncServer.prototype.close = function () {
-    this.log.info('log synchronization server starting');
+    this.log.info('log synchronization server stopping');
 }
 
 SyncServer.prototype.validate_path = function (uri) {
