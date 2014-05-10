@@ -130,7 +130,7 @@ SyncServer.prototype.handle_request = function (request, response, _) {
 }
 
 SyncServer.prototype.handle_head = function (request, response, _) {
-    var uri = url.parse(request.url).pathname
+    var uri = path.join('/', url.parse(request.url).pathname);
     if (!this.validate_path(uri)) throw new HttpError('request path not accepted', {http_status: 400});
     var filename = path.join(this.destdir, uri);
     // no locking as any such errors will be caught at PUT stage anyway
@@ -143,7 +143,7 @@ SyncServer.prototype.handle_head = function (request, response, _) {
 }
 
 SyncServer.prototype.handle_put = function (request, response, _) {
-    var uri = url.parse(request.url).pathname
+    var uri = path.join('/', url.parse(request.url).pathname);
     if (!this.validate_path(uri)) throw new HttpError('request path not accepted', {http_status: 400});
     var filename = path.join(this.destdir, uri);
     var cr = request.headers['content-range'];
