@@ -209,7 +209,7 @@ StatusLogger.prototype.gather_stats = function () {
             var syncer = this.client.targets[k].syncers[s];
             if (syncer.state === 'INSYNC') {
                 stats.targets[k].in_sync += 1;
-            } else if (syncer.state === 'INSYNC') {
+            } else if (syncer.state === 'SENDING') {
                 stats.targets[k].sending += 1;
             } else if (syncer.state === 'ERROR') {
                 if (now.getTime() - syncer.err_start.getTime() > 5000) {
