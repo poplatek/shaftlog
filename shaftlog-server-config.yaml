@@ -1,6 +1,9 @@
 # data directory where to store all synchronized log files
 datadir: /var/log/shaftlog-server
 
+# regex to validate uploaded file paths
+validate_regex: ^(\/([a-zA-Z0-9_-][a-zA-Z0-9._-]*)){1,}$
+
 # log file to use for logs about synchronization
 logfile: /var/log/shaftlog-server.log
 

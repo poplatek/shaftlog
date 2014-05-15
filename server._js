@@ -73,10 +73,11 @@ function pipe_request(request, stream, cb) {
     return;
 }
 
-function SyncServer(destdir, debug_mode) {
+function SyncServer(destdir, debug_mode, validate_regex) {
     this.destdir = destdir;
     this.locks = {};
     this.debug_mode = debug_mode === true;
+    this.validate_regex = validate_regex;
     this.log = logger('server');
 }
 
@@ -89,7 +90,7 @@ SyncServer.prototype.close = function () {
 }
 
 SyncServer.prototype.validate_path = function (uri) {
-    var m = uri.match(/^(\/([a-zA-Z0-9_-][a-zA-Z0-9._-]*)){1,}$/);
+    var m = uri.match(this.validate_regex);
     if (!m) return false;
     return true;
 }

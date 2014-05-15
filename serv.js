@@ -32,8 +32,9 @@ try {
                                      strict: true});
     if (!config.datadir) throw new Error('datadir must be specified in configuration');
     if (!config.logfile) throw new Error('logfile path must be specified in configuration');
+    if (!config.validate_regex) throw new Error('validation regex must be specified in configuration');
 
-    logger.initialize(config.logfile, program.debug ? 'DEBUG' : 'INFO');
+    logger.initialize(config.logfile, program.debug ? 'DEBUG' : 'INFO', config.validate_regex);
 } catch (e) {
     console.error('could not load config file: ' + e);
     process.exit(1);
