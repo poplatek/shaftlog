@@ -23,10 +23,12 @@ function make_parent_directories(filename, _) {
             make_parent_directories(dir, _);
             try {
                 fs.mkdir(dir, _);
-            } if (e.code == 'EEXIST') {
-                return; // We might get an async race here so this is needed
-            } else {
-                throw e;
+            } catch (e) {
+                if (e.code == 'EEXIST') {
+                    return; // We might get an async race here so this is needed
+                } else {
+                    throw e;
+                }
             }
         } else if (e.code == 'EEXIST') {
             return;
