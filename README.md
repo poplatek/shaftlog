@@ -1,7 +1,6 @@
 shaftlog
 =========
-
-[![Build Status](https://img.shields.io/travis/poplatek/shaftlog/master.svg)](https://travis-ci.org/poplatek/shaftlog)
+[![Build Status](https://travis-ci.org/poplatek/shaftlog.svg?branch=master)](https://travis-ci.org/poplatek/shaftlog)
 [![devDependency Status](https://david-dm.org/poplatek/shaftlog/dev-status.svg?theme=shields.io)](https://david-dm.org/poplatek/shaftlog#info=devDependencies)
 [![NPM version](https://badge.fury.io/js/shaftlog.svg)](http://badge.fury.io/js/shaftlog)
 
