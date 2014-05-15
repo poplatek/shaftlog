@@ -9,6 +9,7 @@ var util = require('util');
 var os = require('os');
 
 var glob = require('glob');
+var minimatch = require('minimatch');
 var backoff = require('backoff');
 var ForeverAgent = require('forever-agent');
 
@@ -285,6 +286,9 @@ Scanner.prototype.do_scans = function (_) {
         var logpath = this.logpaths[i];
         var files = glob(logpath.pattern, {nonull: false, statCache: statcache, silent: true}, _);
         for (var j = 0; j < files.length; j++) {
+            if (logpath.exclude && minimatch(files[j], logpath.exclude)) {
+                continue;
+            }
             try {
                 this.handle_file(files[j], logpath, _);
             } catch (e) {
