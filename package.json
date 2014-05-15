@@ -27,7 +27,7 @@
     "node": ">=0.10.0"
   },
   "scripts": {
-    "prepublish": "./node_modules/.bin/_node -c lib && ./node_modules/.bin/browserify -o shaftlog-client.js --bare --dg false ./lib/clie.js && ./node_modules/.bin/browserify -o shaftlog-server.js --bare --dg false ./lib/serv.js"
+    "prepublish": "./node_modules/.bin/_node -c lib && (echo '#!/usr/bin/node'; ./node_modules/.bin/browserify --bare --dg false ./lib/clie.js) > shaftlog-client.js && (echo '#!/usr/bin/node'; ./node_modules/.bin/browserify --bare --dg false ./lib/serv.js) > shaftlog-server.js"
   },
   "preferGlobal": true
 }
