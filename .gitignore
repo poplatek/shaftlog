@@ -14,3 +14,9 @@ results
 npm-debug.log
 
 node_modules
+
+lib/client.js
+lib/server.js
+
+shaftlog-client.js
+shaftlog-server.js
