@@ -96,7 +96,7 @@ The client is configured in `/etc/shaftlog-client-config.yaml`.
     scan_interval: 30000
 
     # how often to print status information
-    status_interval: 1000
+    status_interval: 300000
 
     # list of paths to search for new log files
     # NOTE:
@@ -112,27 +112,39 @@ The client is configured in `/etc/shaftlog-client-config.yaml`.
     # - default rename pattern: "{name}.{mtime}"
     # - regex substitution on filename can be specified by "regex_from"
     #   and "regex_to"
+    # - exclude may be used to specify a glob expression of files to
+    #   exclude from matching files
     scan_paths:
     - name: messages
-      pattern: /var/log/messages{,.+([0-9])!(.gz)}
+      pattern: /var/log/messages*
+      exclude: *.{gz,bz2,xz}
     - name: cron
-      pattern: /var/log/cron{,.+([0-9])!(.gz)}
+      pattern: /var/log/cron*
+      exclude: *.{gz,bz2,xz}
     - name: maillog
-      pattern: /var/log/maillog{,.+([0-9])!(.gz)}
+      pattern: /var/log/maillog*
+      exclude: *.{gz,bz2,xz}
     - name: secure
-      pattern: /var/log/secure{,.+([0-9])!(.gz)}
+      pattern: /var/log/secure*
+      exclude: *.{gz,bz2,xz}
     - name: yum
-      pattern: /var/log/yum.log{,.+([0-9])!(.gz)}
+      pattern: /var/log/yum.log*
+      exclude: *.{gz,bz2,xz}
     - name: audit
-      pattern: /var/log/audit/audit.log{,.+([0-9])!(.gz)}
+      pattern: /var/log/audit/audit.log*
+      exclude: *.{gz,bz2,xz}
     - name: dmesg
-      pattern: /var/log/dmesg{,.+([0-9])!(.gz)}
+      pattern: /var/log/dmesg*
+      exclude: *.{gz,bz2,xz}
     - name: cloudinit
-      pattern: /var/log/cloud-init.log{,.+([0-9])!(.gz)}
+      pattern: /var/log/cloud-init.log*
+      exclude: *.{gz,bz2,xz}
     - name: shaftlog-client
-      pattern: /var/log/shaftlog-client.log{,.+([0-9])!(.gz)}
+      pattern: /var/log/shaftlog-client.log*
+      exclude: *.{gz,bz2,xz}
     - name: shaftlog-server
-      pattern: /var/log/shaftlog-server.log{,.+([0-9])!(.gz)}
+      pattern: /var/log/shaftlog-server.log*
+      exclude: *.{gz,bz2,xz}
     - name: sudo-io
       pattern: /var/log/sudo-io/**/{log,stderr,stdin,stdout,timing,ttyin,ttyout}
       regex_from: "^/var/log/sudo-io/(.*)"
@@ -150,6 +162,9 @@ The server is configured in `/etc/shaftlog-server-config.yaml`.
 
     # data directory where to store all synchronized log files
     datadir: /var/log/shaftlog-server
+
+    # regex to validate uploaded file paths
+    validate_regex: ^(\/([a-zA-Z0-9_-][a-zA-Z0-9._-]*)){1,}$
 
     # log file to use for logs about synchronization
     logfile: /var/log/shaftlog-server.log
