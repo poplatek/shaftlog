@@ -1,0 +1,13 @@
+# data directory where to store all synchronized log files
+datadir: ./servdir
+
+logfile: ./server.log
+
+# regex to validate uploaded file paths
+validate_regex: ^(?:/[a-zA-Z0-9_-][a-zA-Z0-9._-]*){1,}$
+
+# port to listen for connections
+listen_port: 10655
+
+# address to bind to for connections
+bind_address: 0.0.0.0

@@ -1,0 +1,20 @@
+# data directory where to hard link new log files
+# NOTE: must be on the same filesystem as all log files
+datadir: ./datadir
+
+# XXX
+logfile: ./client.log
+
+# how often to scan for new log files in milliseconds
+scan_interval: 30000
+
+# list of paths to search for new log files
+scan_paths:
+- name: test
+  pattern: ./scandir/test*
+  exclude: "*.{gz,bz2,xz}"
+
+# destinations to sync log files to
+destinations:
+- url: http://localhost:10655/{hostname}-a/
+- url: http://localhost:10655/{hostname}-b/
