@@ -10,8 +10,8 @@
     "url": "https://github.com/poplatek/shaftlog.git"
   },
   "bin": {
-    "shaftlog-client": "./clie.js",
-    "shaftlog-server": "./serv.js"
+    "shaftlog-client": "./lib/clie.js",
+    "shaftlog-server": "./lib/serv.js"
   },
   "dependencies": {
     "streamline": ">=0.4.7",
