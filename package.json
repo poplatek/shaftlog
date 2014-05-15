@@ -10,8 +10,8 @@
     "url": "https://github.com/poplatek/shaftlog.git"
   },
   "bin": {
-    "shaftlog-client": "./lib/clie.js",
-    "shaftlog-server": "./lib/serv.js"
+    "shaftlog-client": "./shaftlog-client.js",
+    "shaftlog-server": "./shaftlog-server.js"
   },
   "dependencies": {
     "streamline": ">=0.4.7",
@@ -20,13 +20,14 @@
     "backoff": ">=2.2.0",
     "forever-agent": ">=0.4.0",
     "commander": "~1",
-    "js-yaml": "~2"
+    "js-yaml": "~2",
+    "browserify": "*"
   },
   "engines": {
     "node": ">=0.10.0"
   },
   "scripts": {
-    "build": "./node_modules/.bin/_node -c lib"
+    "prepublish": "./node_modules/.bin/_node -c lib && ./node_modules/.bin/browserify -o shaftlog-client.js --bare --dg false ./lib/clie.js && ./node_modules/.bin/browserify -o shaftlog-server.js --bare --dg false ./lib/serv.js"
   },
   "preferGlobal": true
 }
