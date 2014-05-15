@@ -35,20 +35,26 @@ exports = module.exports = function (name) {
 
 var log = exports('logger');
 
-function initialize(path, level) {
-    logpath = path;
-    var fd = fs.openSync(logpath, 'a');
-    var ino = fs.fstatSync(fd).ino;
-    var ws = fs.createWriteStream(logpath, {fd: fd, encoding: 'utf8'});
-    // XXX: add handler for listening 'error'
-    logstream = ws;
-    logino = ino;
+function initialize(path, level, stdout) {
+    if (stdout) {
+        logstream = process.stdout;
+    } else {
+        logpath = path;
+        var fd = fs.openSync(logpath, 'a');
+        var ino = fs.fstatSync(fd).ino;
+        var ws = fs.createWriteStream(logpath, {fd: fd, encoding: 'utf8'});
+        // XXX: add handler for listening 'error'
+        logstream = ws;
+        logino = ino;
+    }
     loglevel = levels[level] || 0;
     log.info('log stream opened');
 }
 
 function reopen() {
-    // XXX: not initialized
+    if (logpath == null) {
+        return;
+    }
     var fd = fs.openSync(logpath, 'a');
     var ino = fs.fstatSync(fd).ino;
     if (ino === logino) {
@@ -66,7 +72,9 @@ function reopen() {
 
 function close() {
     log.info('log stream closed');
-    logstream.end();
+    if (logpath != null) {
+        logstream.end();
+    }
     logpath = null;
     logstream = process.stderr;
     logino = null;
@@ -84,6 +92,7 @@ var program = require('commander');
 program
     .version('0.0.1')
     .option('-d, --debug', 'enable debugging')
+    .option('-s, --stdout', 'write log messages to stdout')
     .option('-f, --config <path>', 'path to configuration file')
     .parse(process.argv);
 
@@ -107,7 +116,7 @@ try {
     if (!config.logfile) throw new Error('logfile path must be specified in configuration');
     if (!config.validate_regex) throw new Error('validation regex must be specified in configuration');
 
-    logger.initialize(config.logfile, program.debug ? 'DEBUG' : 'INFO', config.validate_regex);
+    logger.initialize(config.logfile, program.debug ? 'DEBUG' : 'INFO', config.validate_regex, program.stdout);
 } catch (e) {
     console.error('could not load config file: ' + e);
     process.exit(1);
@@ -151,11 +160,12 @@ var logger = require("./logger");
 
 function setprops(dest, src) {
   for (var k in src) {
-    dest[k] = src[k]; };};
+    dest[k] = src[k]; };
+
+  return dest;};
 
 
-
-function make_parent_directories(filename, _) { var dir; var __frame = { name: "make_parent_directories", line: 17 }; return __func(_, this, arguments, make_parent_directories, 1, __frame, function __$make_parent_directories() {
+function make_parent_directories(filename, _) { var dir; var __frame = { name: "make_parent_directories", line: 18 }; return __func(_, this, arguments, make_parent_directories, 1, __frame, function __$make_parent_directories() {
     dir = path.dirname(filename); return (function ___(__then) { (function ___(_) { __tryCatch(_, function __$make_parent_directories() {
 
           return fs.mkdir(dir, __cb(_, __frame, 3, 11, __then, true)); }); })(function ___(e, __result) { __catch(function __$make_parent_directories() { if (e) { return (function __$make_parent_directories(__then) {
@@ -179,7 +189,7 @@ function make_parent_directories(filename, _) { var dir; var __frame = { name: "
 
 
 
-function get_file_size(path, _) { var stat; var __frame = { name: "get_file_size", line: 41 }; return __func(_, this, arguments, get_file_size, 1, __frame, function __$get_file_size() { return (function ___(__then) { (function ___(_) { __tryCatch(_, function __$get_file_size() {
+function get_file_size(path, _) { var stat; var __frame = { name: "get_file_size", line: 42 }; return __func(_, this, arguments, get_file_size, 1, __frame, function __$get_file_size() { return (function ___(__then) { (function ___(_) { __tryCatch(_, function __$get_file_size() {
 
           return fs.stat(path, __cb(_, __frame, 2, 22, function ___(__0, __1) { stat = __1;
             return _(null, stat.size); }, true)); }); })(function ___(e, __result) { __catch(function __$get_file_size() { if (e) {
@@ -252,7 +262,10 @@ SyncServer.prototype.handle_raw_request = function(request, response) {
        else {
         var msg = "internal error\n";
         self.log.error(("INTERNAL ERROR: " + err));
-        if (self.debug_mode) { msg += (err.stack + "\n"); };
+        if (self.debug_mode) {
+          self.log.error(err.stack);
+          msg += (err.stack + "\n"); } ;
+
         response.writeHead(500, { "Content-Type": "text/plain",
         "Content-Length": msg.length });
         if ((request.method !== "HEAD")) { response.write(msg); };
@@ -265,7 +278,7 @@ SyncServer.prototype.handle_raw_request = function(request, response) {
 
 
 
-SyncServer.prototype.handle_request = function SyncServer_prototype_handle_request__1(request, response, _) { var __this = this; var __frame = { name: "SyncServer_prototype_handle_request__1", line: 127 }; return __func(_, this, arguments, SyncServer_prototype_handle_request__1, 2, __frame, function __$SyncServer_prototype_handle_request__1() { return (function __$SyncServer_prototype_handle_request__1(__then) {
+SyncServer.prototype.handle_request = function SyncServer_prototype_handle_request__1(request, response, _) { var __this = this; var __frame = { name: "SyncServer_prototype_handle_request__1", line: 131 }; return __func(_, this, arguments, SyncServer_prototype_handle_request__1, 2, __frame, function __$SyncServer_prototype_handle_request__1() { return (function __$SyncServer_prototype_handle_request__1(__then) {
       if ((request.method === "HEAD")) {
         return __this.handle_head(request, response, __cb(_, __frame, 2, 20, _, true)); } else { return (function __$SyncServer_prototype_handle_request__1(__then) {
           if ((request.method === "PUT")) {
@@ -275,7 +288,7 @@ SyncServer.prototype.handle_request = function SyncServer_prototype_handle_reque
 
 
 
-SyncServer.prototype.handle_head = function SyncServer_prototype_handle_head__2(request, response, _) { var uri, filename, local_size, __this = this; var __frame = { name: "SyncServer_prototype_handle_head__2", line: 137 }; return __func(_, this, arguments, SyncServer_prototype_handle_head__2, 2, __frame, function __$SyncServer_prototype_handle_head__2() {
+SyncServer.prototype.handle_head = function SyncServer_prototype_handle_head__2(request, response, _) { var uri, filename, local_size, __this = this; var __frame = { name: "SyncServer_prototype_handle_head__2", line: 141 }; return __func(_, this, arguments, SyncServer_prototype_handle_head__2, 2, __frame, function __$SyncServer_prototype_handle_head__2() {
     uri = path.join("/", url.parse(request.url).pathname);
     if (!__this.validate_path(uri)) { return _(setprops(new Error("request path not accepted"), { http_status: 400 })); } ;
     filename = path.join(__this.destdir, uri);
@@ -288,7 +301,7 @@ SyncServer.prototype.handle_head = function SyncServer_prototype_handle_head__2(
 
 
 
-SyncServer.prototype.handle_put = function SyncServer_prototype_handle_put__3(request, response, _) { var uri, filename, cr, m, start, end, len, size, local_size, ws, success, __this = this; var __frame = { name: "SyncServer_prototype_handle_put__3", line: 150 }; return __func(_, this, arguments, SyncServer_prototype_handle_put__3, 2, __frame, function __$SyncServer_prototype_handle_put__3() {
+SyncServer.prototype.handle_put = function SyncServer_prototype_handle_put__3(request, response, _) { var uri, filename, cr, m, start, end, len, size, local_size, ws, success, __this = this; var __frame = { name: "SyncServer_prototype_handle_put__3", line: 154 }; return __func(_, this, arguments, SyncServer_prototype_handle_put__3, 2, __frame, function __$SyncServer_prototype_handle_put__3() {
     uri = path.join("/", url.parse(request.url).pathname);
     if (!__this.validate_path(uri)) { return _(setprops(new Error("request path not accepted"), { http_status: 400 })); } ;
     filename = path.join(__this.destdir, uri);

@@ -6,10 +6,11 @@
 var program = require('commander');
 program
     .version('0.0.1')
-    .option('-b, --base <path>', 'treat base as filesystem root')
     .option('-d, --debug', 'enable debugging')
+    .option('-s, --stdout', 'write log messages to stdout')
     .option('-f, --config <path>', 'path to configuration file')
-    .option('-o, --one-shot', 'run log synchronization in one shot mode')
+    // UNIMPLEMENTED: .option('-o, --one-shot', 'run log synchronization in one shot mode')
+    // UNIMPLEMENTED: .option('-b, --base <path>', 'treat base as filesystem root')
     .parse(process.argv);
 
 var CONFIG_PATH = '/etc/shaftlog-client-config.yaml';
@@ -35,7 +36,7 @@ try {
     
     // TODO: enforce that destination urls must end in slashes
 
-    logger.initialize(config.logfile, program.debug ? 'DEBUG' : 'INFO');
+    logger.initialize(config.logfile, program.debug ? 'DEBUG' : 'INFO', program.stdout);
 } catch (e) {
     console.error('could not load config file: ' + e);
     process.exit(1);
@@ -699,20 +700,26 @@ exports = module.exports = function (name) {
 
 var log = exports('logger');
 
-function initialize(path, level) {
-    logpath = path;
-    var fd = fs.openSync(logpath, 'a');
-    var ino = fs.fstatSync(fd).ino;
-    var ws = fs.createWriteStream(logpath, {fd: fd, encoding: 'utf8'});
-    // XXX: add handler for listening 'error'
-    logstream = ws;
-    logino = ino;
+function initialize(path, level, stdout) {
+    if (stdout) {
+        logstream = process.stdout;
+    } else {
+        logpath = path;
+        var fd = fs.openSync(logpath, 'a');
+        var ino = fs.fstatSync(fd).ino;
+        var ws = fs.createWriteStream(logpath, {fd: fd, encoding: 'utf8'});
+        // XXX: add handler for listening 'error'
+        logstream = ws;
+        logino = ino;
+    }
     loglevel = levels[level] || 0;
     log.info('log stream opened');
 }
 
 function reopen() {
-    // XXX: not initialized
+    if (logpath == null) {
+        return;
+    }
     var fd = fs.openSync(logpath, 'a');
     var ino = fs.fstatSync(fd).ino;
     if (ino === logino) {
@@ -730,7 +737,9 @@ function reopen() {
 
 function close() {
     log.info('log stream closed');
-    logstream.end();
+    if (logpath != null) {
+        logstream.end();
+    }
     logpath = null;
     logstream = process.stderr;
     logino = null;
