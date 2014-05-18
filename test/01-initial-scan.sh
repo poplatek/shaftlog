@@ -16,13 +16,15 @@ scan_paths:
 - name: test
   pattern: ./scandir/test*
 destinations:
-- url: http://localhost:10655/{hostname}-a/
-- url: http://localhost:10655/{hostname}-b/
+- url: http://127.0.0.1:10655/{hostname}-a/
+- url: http://127.0.0.1:10655/{hostname}-b/
 EOF
 
 cat <<EOF >./server.yaml
 datadir: ./servdir
 logfile: ./server.log
+bind_address: 127.0.0.1
+listen_port: 10655
 EOF
 
 mkdir scandir
