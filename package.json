@@ -31,9 +31,6 @@
     "commander": "2.2.0",
     "js-yaml": "3.0.2"
   },
-  "engines": {
-    "node": ">=0.10.0"
-  },
   "os": [ "!win32" ],
   "preferGlobal": true
 }
