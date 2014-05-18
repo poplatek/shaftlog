@@ -1,4 +1,4 @@
-#!/usr/bin/node
+#!/usr/bin/env node
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 //#!/usr/bin/node
 "use strict";
@@ -92,10 +92,10 @@ function format(str, col) {
 function get_machine_id(datadir) {
   try {
     return fs.readFileSync("/etc/machine-id", { encoding: "utf-8" }).trim();
-  } catch (e) { console.log(e); };
+  } catch (e) {  };
   try {
     return fs.readFileSync("/var/lib/dbus/machine-id", { encoding: "utf-8" }).trim();
-  } catch (e) { console.log(e); };
+  } catch (e) {  };
   if (!fs.existsSync(path.join(datadir, ".machine-id"))) {
     try {
       var uuid = require("crypto").randomBytes(16);
