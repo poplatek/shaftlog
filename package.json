@@ -18,7 +18,8 @@
     "shaftlog-server": "./shaftlog-server.js"
   },
   "scripts": {
-    "prepublish": "./node_modules/.bin/_node -c lib && (echo '#!/usr/bin/env node'; ./node_modules/.bin/browserify --bare --dg false ./lib/clie.js) > shaftlog-client.js && (echo '#!/usr/bin/env node'; ./node_modules/.bin/browserify --bare --dg false ./lib/serv.js) > shaftlog-server.js"
+    "prepublish": "./node_modules/.bin/_node -c lib && (echo '#!/usr/bin/env node'; ./node_modules/.bin/browserify --bare --dg false ./lib/clie.js) > shaftlog-client.js && (echo '#!/usr/bin/env node'; ./node_modules/.bin/browserify --bare --dg false ./lib/serv.js) > shaftlog-server.js",
+    "test": "./test/run.sh"
   },
   "devDependencies": {
     "streamline": "0.10.11",
