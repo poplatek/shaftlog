@@ -14,6 +14,8 @@ program
     .parse(process.argv);
 
 var CONFIG_PATH = '/etc/shaftlog-client-config.yaml';
+var DEFAULT_LOGFILE = '/var/log/shaftlog-client.log';
+var DEFAULT_DATADIR = '/var/log/shaftlog-client';
 var DEFAULT_SCAN_INTERVAL = 30000;
 var DEFAULT_STATUS_INTERVAL = 300000;
 
@@ -27,16 +29,9 @@ var config_path = path.resolve('.', program.config || CONFIG_PATH);
 var config;
 try {
     var config_data = fs.readFileSync(config_path, 'utf-8');
-    config = yaml.load(config_data, {filename: config_path,
-                                     strict: true});
-    if (!config.datadir) throw new Error('datadir must be specified in configuration');
-    if (!config.logfile) throw new Error('logfile path must be specified in configuration');
-    if (!config.scan_paths) throw new Error('scan paths must be specified in configuration (but may be empty)');
-    if (!config.destinations) throw new Error('destinations must be specified in configuration (but may be empty)');
-    
-    // TODO: enforce that destination urls must end in slashes
+    config = yaml.load(config_data, {filename: config_path, strict: true});
 
-    logger.initialize(config.logfile, program.debug ? 'DEBUG' : 'INFO', program.stdout);
+    logger.initialize(config.logfile || DEFAULT_LOGFILE, program.debug ? 'DEBUG' : 'INFO', program.stdout);
 } catch (e) {
     console.error('could not load config file: ' + e);
     process.exit(1);
@@ -44,7 +39,7 @@ try {
 }
 
 var client = require('./client');
-var sc = new client.SyncClient(config.datadir, config.destinations, config.scan_paths,
+var sc = new client.SyncClient(config.datadir || DEFAULT_DATADIR, config.destinations || [], config.scan_paths || [],
                                config.scan_interval || DEFAULT_SCAN_INTERVAL, config.status_interval || DEFAULT_STATUS_INTERVAL);
 sc.start();
 
@@ -416,7 +411,7 @@ Scanner.prototype.get_dest_name = function Scanner_prototype_get_dest_name__3(fn
 
 
 function HttpSyncTarget(base_url, source_dir) {
-  this.base_url = base_url;
+  this.base_url = ((base_url.substr(-1) == "/") ? base_url : (base_url + "/"));
   this.source_dir = source_dir;
   this.syncers = { };
   this.agent = new ForeverAgent();

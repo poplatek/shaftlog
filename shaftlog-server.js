@@ -99,6 +99,8 @@ program
 var CONFIG_PATH = '/etc/shaftlog-server-config.yaml';
 var DEFAULT_PORT = 10655;
 var DEFAULT_ADDRESS = '0.0.0.0';
+var DEFAULT_LOGFILE = '/var/log/shaftlog-server.log';
+var DEFAULT_DATADIR = '/var/log/shaftlog-server';
 
 var path = require('path');
 var fs = require('fs');
@@ -112,11 +114,8 @@ try {
     var config_data = fs.readFileSync(config_path, 'utf-8');
     config = yaml.load(config_data, {filename: config_path,
                                      strict: true});
-    if (!config.datadir) throw new Error('datadir must be specified in configuration');
-    if (!config.logfile) throw new Error('logfile path must be specified in configuration');
-    if (!config.validate_regex) throw new Error('validation regex must be specified in configuration');
 
-    logger.initialize(config.logfile, program.debug ? 'DEBUG' : 'INFO', program.stdout);
+    logger.initialize(config.logfile || DEFAULT_LOGFILE, program.debug ? 'DEBUG' : 'INFO', program.stdout);
 } catch (e) {
     console.error('could not load config file: ' + e);
     process.exit(1);
@@ -125,7 +124,7 @@ try {
 
 var http = require('http');
 var server = require('./server');
-var ss = new server.SyncServer(config.datadir, program.debug, config.validate_regex);
+var ss = new server.SyncServer(config.datadir || DEFAULT_DATADIR, program.debug, config.validate_regex);
 ss.start();
 
 var srv = http.createServer(ss.handle_raw_request.bind(ss)).on('connection', function(socket) {
@@ -230,7 +229,7 @@ function SyncServer(destdir, debug_mode, validate_regex) {
   this.destdir = destdir;
   this.locks = { };
   this.debug_mode = (debug_mode === true);
-  this.validate_regex = new RegExp(validate_regex);
+  this.validate_regex = (validate_regex ? new RegExp(validate_regex) : null);
   this.log = logger("server");};
 
 
@@ -243,7 +242,11 @@ SyncServer.prototype.close = function() {
 
 
 SyncServer.prototype.validate_path = function(uri) {
-  return this.validate_regex.test(uri);};
+  if (this.validate_regex) {
+    return this.validate_regex.test(uri); }
+   else {
+    return true; } ;};
+
 
 
 SyncServer.prototype.handle_raw_request = function(request, response) {
@@ -276,7 +279,7 @@ SyncServer.prototype.handle_raw_request = function(request, response) {
 
 
 
-SyncServer.prototype.handle_request = function SyncServer_prototype_handle_request__1(request, response, _) { var __this = this; var __frame = { name: "SyncServer_prototype_handle_request__1", line: 129 }; return __func(_, this, arguments, SyncServer_prototype_handle_request__1, 2, __frame, function __$SyncServer_prototype_handle_request__1() { return (function __$SyncServer_prototype_handle_request__1(__then) {
+SyncServer.prototype.handle_request = function SyncServer_prototype_handle_request__1(request, response, _) { var __this = this; var __frame = { name: "SyncServer_prototype_handle_request__1", line: 133 }; return __func(_, this, arguments, SyncServer_prototype_handle_request__1, 2, __frame, function __$SyncServer_prototype_handle_request__1() { return (function __$SyncServer_prototype_handle_request__1(__then) {
       if ((request.method === "HEAD")) {
         return __this.handle_head(request, response, __cb(_, __frame, 2, 20, _, true)); } else { return (function __$SyncServer_prototype_handle_request__1(__then) {
           if ((request.method === "PUT")) {
@@ -286,7 +289,7 @@ SyncServer.prototype.handle_request = function SyncServer_prototype_handle_reque
 
 
 
-SyncServer.prototype.handle_head = function SyncServer_prototype_handle_head__2(request, response, _) { var uri, filename, local_size, __this = this; var __frame = { name: "SyncServer_prototype_handle_head__2", line: 139 }; return __func(_, this, arguments, SyncServer_prototype_handle_head__2, 2, __frame, function __$SyncServer_prototype_handle_head__2() {
+SyncServer.prototype.handle_head = function SyncServer_prototype_handle_head__2(request, response, _) { var uri, filename, local_size, __this = this; var __frame = { name: "SyncServer_prototype_handle_head__2", line: 143 }; return __func(_, this, arguments, SyncServer_prototype_handle_head__2, 2, __frame, function __$SyncServer_prototype_handle_head__2() {
     uri = path.join("/", url.parse(request.url).pathname);
     if (!__this.validate_path(uri)) { return _(setprops(new Error("request path not accepted"), { http_status: 400 })); } ;
     filename = path.join(__this.destdir, uri);
@@ -299,7 +302,7 @@ SyncServer.prototype.handle_head = function SyncServer_prototype_handle_head__2(
 
 
 
-SyncServer.prototype.handle_put = function SyncServer_prototype_handle_put__3(request, response, _) { var uri, filename, cr, m, start, end, len, size, local_size, ws, success, __this = this; var __frame = { name: "SyncServer_prototype_handle_put__3", line: 152 }; return __func(_, this, arguments, SyncServer_prototype_handle_put__3, 2, __frame, function __$SyncServer_prototype_handle_put__3() {
+SyncServer.prototype.handle_put = function SyncServer_prototype_handle_put__3(request, response, _) { var uri, filename, cr, m, start, end, len, size, local_size, ws, success, __this = this; var __frame = { name: "SyncServer_prototype_handle_put__3", line: 156 }; return __func(_, this, arguments, SyncServer_prototype_handle_put__3, 2, __frame, function __$SyncServer_prototype_handle_put__3() {
     uri = path.join("/", url.parse(request.url).pathname);
     if (!__this.validate_path(uri)) { return _(setprops(new Error("request path not accepted"), { http_status: 400 })); } ;
     filename = path.join(__this.destdir, uri);
