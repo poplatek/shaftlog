@@ -91,21 +91,21 @@ function format(str, col) {
 
 function get_machine_id(datadir) {
   try {
-    return fs.readFileSync("/etc/machine-id").trim();
-  } catch (e) {  };
+    return fs.readFileSync("/etc/machine-id", { encoding: "utf-8" }).trim();
+  } catch (e) { console.log(e); };
   try {
-    return fs.readFileSync("/var/lib/dbus/machine-id").trim();
-  } catch (e) {  };
+    return fs.readFileSync("/var/lib/dbus/machine-id", { encoding: "utf-8" }).trim();
+  } catch (e) { console.log(e); };
   if (!fs.existsSync(path.join(datadir, ".machine-id"))) {
     try {
       var uuid = require("crypto").randomBytes(16);
       uuid[6] = (((uuid[6] & 15)) | 64);
       uuid[8] = (((uuid[8] & 63)) | 128);
-      fs.writeFileSync(path.join(datadir, ".machine-id"), (uuid.toString("hex") + "\n"));
+      fs.writeFileSync(path.join(datadir, ".machine-id"), (uuid.toString("hex") + "\n"), { encoding: "utf-8" });
     } catch (e) {  }; } ;
 
   try {
-    return fs.readFileSync(path.join(datadir, ".machine-id")).trim();
+    return fs.readFileSync(path.join(datadir, ".machine-id"), { encoding: "utf-8" }).trim();
   } catch (e) {  };
   return "_unknown_";};
 
