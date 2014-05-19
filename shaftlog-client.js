@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-//#!/usr/bin/node
 "use strict";
 
 var program = require('commander');
@@ -546,14 +545,13 @@ HttpFileSyncer.prototype.send_file = function HttpFileSyncer_prototype_send_file
 
       return get_local_size(__this.source_path, __cb(_, __frame, 4, 22, function ___(__0, __2) { __this.local_size = __2;
         if ((__this.local_size < __this.remote_size)) {
-          __this.log.error("FILE SHRANK, AIEE"); } ; return (function ___(__break) { var __more; var __loop = __cb(_, __frame, 0, 0, function __$HttpFileSyncer_prototype_send_file__4() { __more = false;
-
+          return _(new Error("file shrank, should not happen, retrying via normal backoff")); } ; return (function ___(__break) { var __more; var __loop = __cb(_, __frame, 0, 0, function __$HttpFileSyncer_prototype_send_file__4() { __more = false;
 
             var __7 = (__this.local_size > __this.remote_size); if (__7) {
               len = Math.min(BLOCKSIZE, (__this.local_size - __this.remote_size));
               __this.emit("piece", __this.remote_size, (__this.remote_size + len));
-              return send_piece(__this.agent, __this.target_url, __this.source_path, __this.remote_size, len, __this.local_size, __cb(_, __frame, 12, 27, function ___(__0, __3) { __this.remote_size = __3;
-                return get_local_size(__this.source_path, __cb(_, __frame, 13, 26, function ___(__0, __4) { __this.local_size = __4; while (__more) { __loop(); }; __more = true; }, true)); }, true)); } else { __break(); } ; }); do { __loop(); } while (__more); __more = true; })(_); }, true)); }); });};
+              return send_piece(__this.agent, __this.target_url, __this.source_path, __this.remote_size, len, __this.local_size, __cb(_, __frame, 11, 27, function ___(__0, __3) { __this.remote_size = __3;
+                return get_local_size(__this.source_path, __cb(_, __frame, 12, 26, function ___(__0, __4) { __this.local_size = __4; while (__more) { __loop(); }; __more = true; }, true)); }, true)); } else { __break(); } ; }); do { __loop(); } while (__more); __more = true; })(_); }, true)); }); });};
 
 
 

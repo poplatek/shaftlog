@@ -85,7 +85,6 @@ exports.reopen = reopen;
 exports.close = close;
 
 },{}],2:[function(require,module,exports){
-//#!/usr/bin/node
 "use strict";
 
 var program = require('commander');
@@ -101,6 +100,7 @@ var DEFAULT_PORT = 10655;
 var DEFAULT_ADDRESS = '0.0.0.0';
 var DEFAULT_LOGFILE = '/var/log/shaftlog-server.log';
 var DEFAULT_DATADIR = '/var/log/shaftlog-server';
+var DEFAULT_STATUS_INTERVAL = 300000;
 
 var path = require('path');
 var fs = require('fs');
@@ -124,7 +124,7 @@ try {
 
 var http = require('http');
 var server = require('./server');
-var ss = new server.SyncServer(config.datadir || DEFAULT_DATADIR, program.debug, config.validate_regex);
+var ss = new server.SyncServer(config.datadir || DEFAULT_DATADIR, program.debug, config.status_interval || DEFAULT_STATUS_INTERVAL, config.validate_regex);
 ss.start();
 
 var srv = http.createServer(ss.handle_raw_request.bind(ss)).on('connection', function(socket) {
@@ -225,19 +225,27 @@ function pipe_request(request, stream, cb) {
   return;};
 
 
-function SyncServer(destdir, debug_mode, validate_regex) {
+function SyncServer(destdir, debug_mode, status_interval, validate_regex) {
   this.destdir = destdir;
   this.locks = { };
   this.debug_mode = (debug_mode === true);
+  this.status_interval = status_interval;
   this.validate_regex = (validate_regex ? new RegExp(validate_regex) : null);
-  this.log = logger("server");};
+  this.log = logger("server");
+  this.head_requests = 0;
+  this.put_requests = 0;
+  this.error_requests = 0;
+  this.put_bytes = 0;
+  this.statuslogger = new StatusLogger(this, this.status_interval);};
 
 
 SyncServer.prototype.start = function() {
-  this.log.info("log synchronization server starting");};
+  this.log.info("log synchronization server starting");
+  this.statuslogger.start();};
 
 
 SyncServer.prototype.close = function() {
+  this.statuslogger.close();
   this.log.info("log synchronization server stopping");};
 
 
@@ -253,6 +261,7 @@ SyncServer.prototype.handle_raw_request = function(request, response) {
   var self = this;
   return this.handle_request(request, response, function(err, val) {
     if (err) {
+      if ((err.http_status != 404)) { self.error_requests += 1; };
       if (err.http_status) {
         var msg = (self.debug_mode ? err.stack : (String(err) + "\n"));
         if ((err.http_status !== 404)) { self.log.warn(("CLIENT ERROR: " + err)); };
@@ -273,13 +282,15 @@ SyncServer.prototype.handle_raw_request = function(request, response) {
         response.end(); } ; }
 
      else {
+      if ((request.method === "HEAD")) { self.head_requests += 1; } else {
+        if ((request.method === "PUT")) { self.put_requests += 1; } };
       response.writeHead(val[0], val[1]);
       response.end(); } ; });};
 
 
 
 
-SyncServer.prototype.handle_request = function SyncServer_prototype_handle_request__1(request, response, _) { var __this = this; var __frame = { name: "SyncServer_prototype_handle_request__1", line: 133 }; return __func(_, this, arguments, SyncServer_prototype_handle_request__1, 2, __frame, function __$SyncServer_prototype_handle_request__1() { return (function __$SyncServer_prototype_handle_request__1(__then) {
+SyncServer.prototype.handle_request = function SyncServer_prototype_handle_request__1(request, response, _) { var __this = this; var __frame = { name: "SyncServer_prototype_handle_request__1", line: 144 }; return __func(_, this, arguments, SyncServer_prototype_handle_request__1, 2, __frame, function __$SyncServer_prototype_handle_request__1() { return (function __$SyncServer_prototype_handle_request__1(__then) {
       if ((request.method === "HEAD")) {
         return __this.handle_head(request, response, __cb(_, __frame, 2, 20, _, true)); } else { return (function __$SyncServer_prototype_handle_request__1(__then) {
           if ((request.method === "PUT")) {
@@ -289,7 +300,7 @@ SyncServer.prototype.handle_request = function SyncServer_prototype_handle_reque
 
 
 
-SyncServer.prototype.handle_head = function SyncServer_prototype_handle_head__2(request, response, _) { var uri, filename, local_size, __this = this; var __frame = { name: "SyncServer_prototype_handle_head__2", line: 143 }; return __func(_, this, arguments, SyncServer_prototype_handle_head__2, 2, __frame, function __$SyncServer_prototype_handle_head__2() {
+SyncServer.prototype.handle_head = function SyncServer_prototype_handle_head__2(request, response, _) { var uri, filename, local_size, __this = this; var __frame = { name: "SyncServer_prototype_handle_head__2", line: 154 }; return __func(_, this, arguments, SyncServer_prototype_handle_head__2, 2, __frame, function __$SyncServer_prototype_handle_head__2() {
     uri = path.join("/", url.parse(request.url).pathname);
     if (!__this.validate_path(uri)) { return _(setprops(new Error("request path not accepted"), { http_status: 400 })); } ;
     filename = path.join(__this.destdir, uri);
@@ -302,7 +313,7 @@ SyncServer.prototype.handle_head = function SyncServer_prototype_handle_head__2(
 
 
 
-SyncServer.prototype.handle_put = function SyncServer_prototype_handle_put__3(request, response, _) { var uri, filename, cr, m, start, end, len, size, local_size, ws, success, __this = this; var __frame = { name: "SyncServer_prototype_handle_put__3", line: 156 }; return __func(_, this, arguments, SyncServer_prototype_handle_put__3, 2, __frame, function __$SyncServer_prototype_handle_put__3() {
+SyncServer.prototype.handle_put = function SyncServer_prototype_handle_put__3(request, response, _) { var uri, filename, cr, m, start, end, len, size, local_size, ws, success, __this = this; var __frame = { name: "SyncServer_prototype_handle_put__3", line: 167 }; return __func(_, this, arguments, SyncServer_prototype_handle_put__3, 2, __frame, function __$SyncServer_prototype_handle_put__3() {
     uri = path.join("/", url.parse(request.url).pathname);
     if (!__this.validate_path(uri)) { return _(setprops(new Error("request path not accepted"), { http_status: 400 })); } ;
     filename = path.join(__this.destdir, uri);
@@ -329,10 +340,51 @@ SyncServer.prototype.handle_put = function SyncServer_prototype_handle_put__3(re
               return pipe_request(request, ws, __cb(_, __frame, 24, 22, function ___(__0, __2) { success = __2;
                 if (!success) { return _(setprops(new Error("request was not fully processed"), { http_status: 400 })); } ;
                 return get_file_size(filename, __cb(_, __frame, 26, 21, function ___(__0, __3) { local_size = __3;
+                  __this.put_bytes += len;
                   return _(null, [204,{ "Content-Length": "0" },]); }, true)); }, true)); }); }, true)); }); })(function ___(__e, __r, __cont) { (function ___(__then) { __tryCatch(_, function __$SyncServer_prototype_handle_put__3() {
 
             delete __this.locks[filename]; __then(); }); })(function ___() { __tryCatch(_, function ___() { if (__cont) { __then(); } else { _(__e, __r); }; }); }); }); })(function ___() { __tryCatch(_, function __$SyncServer_prototype_handle_put__3() { _(); }); }); });};
 
+
+
+function StatusLogger(server, log_interval) {
+  this.server = server;
+  this.log_interval = log_interval;
+  this.stats = this.gather_stats();
+  this.interval_id = null;
+  this.log = logger("status");};
+
+
+StatusLogger.prototype.start = function() {
+  this.interval_id = setInterval(this.status.bind(this), this.log_interval);};
+
+
+StatusLogger.prototype.close = function() {
+  if (this.interval_id) {
+    clearInterval(this.interval_id);
+    this.interval_id = null; } ;};
+
+
+
+StatusLogger.prototype.gather_stats = function() {
+  var stats = {
+    head_requests: this.server.head_requests,
+    put_requests: this.server.put_requests,
+    error_requests: this.server.error_requests,
+    put_bytes: this.server.put_bytes };
+
+  return stats;};
+
+
+StatusLogger.prototype.status = function() {
+  var olds = this.stats;
+  var news = this.gather_stats();
+  this.log.info(util.format("%d head requests, %d put requests, %d errors, %d put bytes", (news.head_requests - olds.head_requests), (news.put_requests - olds.put_requests), (news.error_requests - olds.error_requests), (news.put_bytes - olds.put_bytes)));
+
+
+
+
+  this.stats = news;};
 
 
 exports.SyncServer = SyncServer;
