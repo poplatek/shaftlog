@@ -46,15 +46,14 @@ EOF
 mkdir scandir
 mkdir datadir
 echo "foo" > scandir/test
-sleep 2;
+sleep 1;
 echo "bar" > scandir/test.1
-sleep 2;
 
 mkdir servdir
 $server -dsf ./server.yaml & server_pid=$!
+sleep 1
 $client -dsf ./client.yaml & client_pid=$!
-
-sleep 2
+sleep 1
 
 kill $client_pid
 wait $client_pid
