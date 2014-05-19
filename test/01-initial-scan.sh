@@ -2,12 +2,28 @@
 
 set -e
 
-cleanup() {
-    rm -rf scandir datadir servdir client.log server.log client.yaml server.yaml a.txt b.txt
-}
-trap 'cleanup; exit' INT QUIT TERM
+client="$PWD"/../shaftlog-client.js
+server="$PWD"/../shaftlog-server.js
+tempdir=`mktemp --tmpdir -d shaftlog-test-tmp.XXXXXXXXXX`
+client_pid=
+server_pid=
 
-cleanup
+cleanup() {
+    if [ "x$server_pid" != "x" ]; then
+        kill $server_pid || true
+        wait $server_pid || true
+        server_pid=
+    fi
+    if [ "x$client_pid" != "x" ]; then
+        kill $client_pid || true
+        wait $client_pid || true
+        client_pid=
+    fi
+    rm -rf "$tempdir"
+}
+trap "cleanup" EXIT
+
+cd "$tempdir"
 
 cat <<EOF >./client.yaml
 datadir: ./datadir
@@ -35,15 +51,17 @@ echo "bar" > scandir/test.1
 sleep 2;
 
 mkdir servdir
-../shaftlog-server.js -dsf ./server.yaml & server_pid=$!
-../shaftlog-client.js -dsf ./client.yaml & client_pid=$!
+$server -dsf ./server.yaml & server_pid=$!
+$client -dsf ./client.yaml & client_pid=$!
 
 sleep 2
 
 kill $client_pid
 wait $client_pid
+client_pid=
 kill $server_pid
 wait $server_pid
+server_pid=
 
 ls -i ./scandir | cut -d' ' -f1 | sort -n > a.txt
 ls -i ./datadir | cut -d' ' -f1 | sort -n > b.txt
@@ -52,5 +70,3 @@ diff a.txt b.txt
 
 diff -r ./datadir ./servdir/`hostname`-a/
 diff -r ./datadir ./servdir/`hostname`-b/
-
-cleanup
