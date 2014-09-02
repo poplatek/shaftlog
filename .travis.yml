@@ -13,4 +13,5 @@ deploy:
     secure: VcNqHzqcVZPCyPweSKGSzePRFo1ybfZ22xxqe/2mh+FlBUbTZTJW91JltbKlvgC+/UhzlkdY9QrGnDmW1Bc4k9BNZmLfgA1xs4etYBwIKy/wFhhP+9M0WM7dK5lhMa0R3csZFZFMtKpYSLD0oS0YnWQO0omZyoRl21TYGudqiZ0=
   on:
     tags: true
+    all_branches: true
     repo: poplatek/shaftlog
