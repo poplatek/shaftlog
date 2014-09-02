@@ -67,5 +67,5 @@ ls -i ./datadir | cut -d' ' -f1 | sort -n > b.txt
 
 diff a.txt b.txt
 
-diff -r ./datadir ./servdir/`hostname`-a/
-diff -r ./datadir ./servdir/`hostname`-b/
+diff -x '.*' -r ./datadir ./servdir/`hostname`-a/
+diff -x '.*' -r ./datadir ./servdir/`hostname`-b/
