@@ -17,6 +17,7 @@ var DEFAULT_LOGFILE = '/var/log/shaftlog-client.log';
 var DEFAULT_DATADIR = '/var/log/shaftlog-client';
 var DEFAULT_SCAN_INTERVAL = 30000;
 var DEFAULT_STATUS_INTERVAL = 300000;
+var DEFAULT_TRIGGER_INTERVAL = 1000;
 
 var path = require('path');
 var fs = require('fs');
@@ -39,7 +40,8 @@ try {
 
 var client = require('./client');
 var sc = new client.SyncClient(config.datadir || DEFAULT_DATADIR, config.destinations || [], config.scan_paths || [],
-                               config.scan_interval || DEFAULT_SCAN_INTERVAL, config.status_interval || DEFAULT_STATUS_INTERVAL);
+                               config.scan_interval || DEFAULT_SCAN_INTERVAL, config.status_interval || DEFAULT_STATUS_INTERVAL,
+                               config.periodic_trigger_interval || DEFAULT_TRIGGER_INTERVAL);
 sc.start();
 
 process.on('SIGHUP', function () {
@@ -125,16 +127,19 @@ function make_parent_directories(filename, _) { var dir; var __frame = { name: "
 
 
 
-function SyncClient(datadir, destinations, scan_paths, scan_interval, status_interval) {
+function SyncClient(datadir, destinations, scan_paths, scan_interval, status_interval, trigger_interval) {
   this.datadir = datadir;
   this.destinations = destinations;
   this.scan_paths = scan_paths;
   this.scan_interval = scan_interval;
   this.status_interval = status_interval;
+  this.trigger_interval = trigger_interval;
   this.names = { };
   this.inodes = { };
   this.watches = { };
   this.targets = { };
+  this.trigger_interval_id = null;
+  this.trigger_index = 0;
   this.replacements = {
     hostname: os.hostname(),
     machine: get_machine_id(datadir) };
@@ -174,19 +179,26 @@ SyncClient.prototype.has_file = function(fn, stat) {
 SyncClient.prototype.start = function() {
   this.log.info("starting log synchronization");
   var self = this;
+  for (var k in this.names) {
+    this.watches[k] = fs.watch(path.join(this.datadir, k), function(event, filename) {
+      self.trigger_file(k); }); };
+
+
   for (var k in this.targets) {
     this.targets[k].start(); };
 
-  for (var k in this.names) {
-    this.watches[k] = fs.watch(path.join(this.datadir, k), function(event, filename) {
-      self.trigger_file(filename); }); };
-
-
   this.scanner.start();
-  this.statuslogger.start();};
+  this.statuslogger.start();
+  if (this.trigger_interval) {
+    this.trigger_interval_id = setInterval(this.trigger_one.bind(this), this.trigger_interval); } ;};
+
 
 
 SyncClient.prototype.close = function() {
+  if (this.trigger_interval_id) {
+    clearInterval(this.trigger_interval_id);
+    this.trigger_interval_id = null; } ;
+
   if (this.statuslogger) {
     this.statuslogger.close();
     this.statuslogger = null; } ;
@@ -212,11 +224,13 @@ SyncClient.prototype.add_file = function(name) {
   this.names[name] = true;
   this.inodes[stat.ino] = name;
   for (var k in this.targets) {
-    this.targets[k].add_file(name);
-    this.targets[k].trigger_file(name); };
+    this.targets[k].add_file(name); };
 
   this.watches[name] = fs.watch(path.join(this.datadir, name), function(event, filename) {
-    self.trigger_file(filename); });};
+    self.trigger_file(name); });
+
+  for (var k in this.targets) {
+    this.targets[k].trigger_file(name); };};
 
 
 
@@ -224,6 +238,14 @@ SyncClient.prototype.trigger_file = function(name) {
   for (var k in this.targets) {
     this.targets[k].trigger_file(name); };};
 
+
+
+SyncClient.prototype.trigger_one = function() {
+  var files = Object.keys(this.names);
+  if ((files.length == 0)) { return };
+  if ((this.trigger_index >= files.length)) { this.trigger_index = 0; };
+  this.trigger_file(files[self.trigger_index]);
+  this.trigger_index += 1;};
 
 
 function StatusLogger(client, log_interval) {
@@ -338,7 +360,7 @@ Scanner.prototype.run_scan = function() {
 
 
 
-Scanner.prototype.do_scans = function Scanner_prototype_do_scans__1(_) { var statcache, i, logpath, files, j, __this = this; var __frame = { name: "Scanner_prototype_do_scans__1", line: 283 }; return __func(_, this, arguments, Scanner_prototype_do_scans__1, 0, __frame, function __$Scanner_prototype_do_scans__1() {
+Scanner.prototype.do_scans = function Scanner_prototype_do_scans__1(_) { var statcache, i, logpath, files, j, __this = this; var __frame = { name: "Scanner_prototype_do_scans__1", line: 303 }; return __func(_, this, arguments, Scanner_prototype_do_scans__1, 0, __frame, function __$Scanner_prototype_do_scans__1() {
     statcache = { };
     i = 0; var __3 = false; return (function ___(__break) { var __more; var __loop = __cb(_, __frame, 0, 0, function __$Scanner_prototype_do_scans__1() { __more = false; if (__3) { i++; } else { __3 = true; } ; var __2 = (i < __this.logpaths.length); if (__2) {
           logpath = __this.logpaths[i];
@@ -357,7 +379,7 @@ Scanner.prototype.do_scans = function Scanner_prototype_do_scans__1(_) { var sta
 
 
 
-Scanner.prototype.handle_file = function Scanner_prototype_handle_file__2(fn, logpath, _) { var stats, tmppath, realname, __this = this; var __frame = { name: "Scanner_prototype_handle_file__2", line: 302 }; return __func(_, this, arguments, Scanner_prototype_handle_file__2, 2, __frame, function __$Scanner_prototype_handle_file__2() {
+Scanner.prototype.handle_file = function Scanner_prototype_handle_file__2(fn, logpath, _) { var stats, tmppath, realname, __this = this; var __frame = { name: "Scanner_prototype_handle_file__2", line: 322 }; return __func(_, this, arguments, Scanner_prototype_handle_file__2, 2, __frame, function __$Scanner_prototype_handle_file__2() {
     return fs.stat(fn, __cb(_, __frame, 1, 19, function ___(__0, __1) { stats = __1;
       if (((!stats.isFile() || (stats.size < 1)) || __this.tester(fn, stats))) {
         return _(null, false); } ;
@@ -388,7 +410,7 @@ Scanner.prototype.handle_file = function Scanner_prototype_handle_file__2(fn, lo
 
 
 
-Scanner.prototype.get_dest_name = function Scanner_prototype_get_dest_name__3(fn, logpath, stats, _) { var replacements, destname; var __frame = { name: "Scanner_prototype_get_dest_name__3", line: 333 }; return __func(_, this, arguments, Scanner_prototype_get_dest_name__3, 3, __frame, function __$Scanner_prototype_get_dest_name__3() {
+Scanner.prototype.get_dest_name = function Scanner_prototype_get_dest_name__3(fn, logpath, stats, _) { var replacements, destname; var __frame = { name: "Scanner_prototype_get_dest_name__3", line: 353 }; return __func(_, this, arguments, Scanner_prototype_get_dest_name__3, 3, __frame, function __$Scanner_prototype_get_dest_name__3() {
     replacements = {
       name: logpath.name,
       time: new Date().getTime(),
@@ -539,7 +561,7 @@ HttpFileSyncer.prototype.start_send_file = function() {
   this.call.start();};
 
 
-HttpFileSyncer.prototype.send_file = function HttpFileSyncer_prototype_send_file__4(_) { var len, __this = this; var __frame = { name: "HttpFileSyncer_prototype_send_file__4", line: 484 }; return __func(_, this, arguments, HttpFileSyncer_prototype_send_file__4, 0, __frame, function __$HttpFileSyncer_prototype_send_file__4() { return (function __$HttpFileSyncer_prototype_send_file__4(__then) {
+HttpFileSyncer.prototype.send_file = function HttpFileSyncer_prototype_send_file__4(_) { var len, __this = this; var __frame = { name: "HttpFileSyncer_prototype_send_file__4", line: 504 }; return __func(_, this, arguments, HttpFileSyncer_prototype_send_file__4, 0, __frame, function __$HttpFileSyncer_prototype_send_file__4() { return (function __$HttpFileSyncer_prototype_send_file__4(__then) {
       if ((__this.remote_size == null)) {
         return get_remote_size(__this.agent, __this.target_url, __cb(_, __frame, 2, 27, function ___(__0, __1) { __this.remote_size = __1; __then(); }, true)); } else { __then(); } ; })(function __$HttpFileSyncer_prototype_send_file__4() {
 
