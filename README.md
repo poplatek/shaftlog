@@ -101,6 +101,9 @@ The client is configured in `/etc/shaftlog-client-config.yaml`.
     # how often to print status information
     status_interval: 300000
 
+    # how often to re-stat one file in round robin to catch missed changes
+    periodic_trigger_interval: 1000
+
     # list of paths to search for new log files
     # NOTE:
     # - destination filename is specified by "rename" key
