@@ -15,3 +15,4 @@ deploy:
     tags: true
     all_branches: true
     repo: poplatek/shaftlog
+    node: 0.10
