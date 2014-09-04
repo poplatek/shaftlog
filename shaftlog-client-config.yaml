@@ -33,34 +33,34 @@ periodic_trigger_interval: 1000
 scan_paths:
 - name: messages
   pattern: /var/log/messages*
-  exclude: *.{gz,bz2,xz}
+  exclude: "*.{gz,bz2,xz}"
 - name: cron
   pattern: /var/log/cron*
-  exclude: *.{gz,bz2,xz}
+  exclude: "*.{gz,bz2,xz}"
 - name: maillog
   pattern: /var/log/maillog*
-  exclude: *.{gz,bz2,xz}
+  exclude: "*.{gz,bz2,xz}"
 - name: secure
   pattern: /var/log/secure*
-  exclude: *.{gz,bz2,xz}
+  exclude: "*.{gz,bz2,xz}"
 - name: yum
   pattern: /var/log/yum.log*
-  exclude: *.{gz,bz2,xz}
+  exclude: "*.{gz,bz2,xz}"
 - name: audit
   pattern: /var/log/audit/audit.log*
-  exclude: *.{gz,bz2,xz}
+  exclude: "*.{gz,bz2,xz}"
 - name: dmesg
   pattern: /var/log/dmesg*
-  exclude: *.{gz,bz2,xz}
+  exclude: "*.{gz,bz2,xz}"
 - name: cloudinit
   pattern: /var/log/cloud-init.log*
-  exclude: *.{gz,bz2,xz}
+  exclude: "*.{gz,bz2,xz}"
 - name: shaftlog-client
   pattern: /var/log/shaftlog-client.log*
-  exclude: *.{gz,bz2,xz}
+  exclude: "*.{gz,bz2,xz}"
 - name: shaftlog-server
   pattern: /var/log/shaftlog-server.log*
-  exclude: *.{gz,bz2,xz}
+  exclude: "*.{gz,bz2,xz}"
 - name: sudo-io
   pattern: /var/log/sudo-io/**/{log,stderr,stdin,stdout,timing,ttyin,ttyout}
   regex_from: "^/var/log/sudo-io/(.*)"
