@@ -51,9 +51,9 @@ echo "bar" > scandir/test.1
 
 mkdir servdir
 $server -dsf ./server.yaml & server_pid=$!
-sleep 1
+sleep 3
 $client -dsf ./client.yaml & client_pid=$!
-sleep 1
+sleep 3
 
 kill $client_pid
 wait $client_pid
