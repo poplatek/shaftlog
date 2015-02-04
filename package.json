@@ -25,14 +25,14 @@
     "test": "./test/run.sh"
   },
   "devDependencies": {
-    "backoff": "^2.4.0",
-    "browserify": "^5.11.0",
-    "commander": "^2.3.0",
-    "forever-agent": "0.5.2",
-    "glob": "^4.0.5",
-    "js-yaml": "^3.2.1",
-    "minimatch": "^1.0.0",
-    "streamline": "^0.10.13"
+    "backoff": "^2.4.x",
+    "browserify": "^8.1.x",
+    "commander": "^2.6.x",
+    "forever-agent": "0.5.x",
+    "glob": "^4.3.x",
+    "js-yaml": "^3.2.x",
+    "minimatch": "^2.0.x",
+    "streamline": "^0.10.x"
   },
   "engines": {
     "node": "~0.10"
