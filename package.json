@@ -30,9 +30,9 @@
     "commander": "~2.6.0",
     "forever-agent": "~0.5.2",
     "glob": "~4.3.5",
-    "js-yaml": "^3.2.x",
-    "minimatch": "^2.0.x",
-    "streamline": "^0.10.x"
+    "js-yaml": "~3.2.6",
+    "minimatch": "~2.0.1",
+    "streamline": "~0.10.16"
   },
   "engines": {
     "node": "~0.10"
