@@ -1,6 +1,6 @@
 {
   "name": "shaftlog",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Secure, highly available, and fault tolerant log transport",
   "keywords": [
     "log",
