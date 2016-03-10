@@ -26,13 +26,13 @@
   },
   "devDependencies": {
     "backoff": "^2.4.1",
-    "browserify": "^8.1.3",
+    "browserify": "^13.0.0",
     "commander": "^2.6.0",
-    "forever-agent": "^0.5.2",
-    "glob": "^4.3.5",
+    "forever-agent": "^0.6.1",
+    "glob": "^7.0.3",
     "js-yaml": "^3.2.6",
-    "minimatch": "^2.0.1",
-    "streamline": "^0.10.16"
+    "minimatch": "^3.0.0",
+    "streamline": "^2.0.6"
   },
   "engines": {
     "node": "~0.10"
